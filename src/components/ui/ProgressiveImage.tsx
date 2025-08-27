@@ -36,7 +36,10 @@ export function ProgressiveImage({
 
   // Intersection Observer for lazy loading
   useEffect(() => {
-    if (priority) return;
+    if (priority) {
+      setIsLoading(false);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -78,7 +81,7 @@ export function ProgressiveImage({
       <div
         ref={imgRef}
         className={cn('bg-gray-200 dark:bg-gray-700 flex items-center justify-center', className)}
-        style={fill ? undefined : { width, height }}
+        style={fill ? undefined : { width: width || 400, height: height || 300 }}
       >
         <div className="text-gray-400 text-center p-4">
           <svg
@@ -108,7 +111,7 @@ export function ProgressiveImage({
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse"
-          style={fill ? undefined : { width, height }}
+          style={fill ? undefined : { width: width || 400, height: height || 300 }}
         >
           {placeholder && (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -128,8 +131,8 @@ export function ProgressiveImage({
         <Image
           src={src}
           alt={alt}
-          width={fill ? undefined : width}
-          height={fill ? undefined : height}
+          width={fill ? undefined : (width ?? 400)}
+          height={fill ? undefined : (height ?? 300)}
           fill={fill}
           sizes={sizes}
           quality={quality}

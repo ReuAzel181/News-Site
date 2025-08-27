@@ -36,7 +36,7 @@ const mockArticles = [
     publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     views: 8420,
     featured: true,
-    imageUrl: '/api/placeholder/400/250',
+    imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=250&fit=crop',
     tags: ['AI', 'Healthcare', 'Technology', 'Innovation']
   },
   {
@@ -50,7 +50,7 @@ const mockArticles = [
     publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
     views: 12150,
     featured: false,
-    imageUrl: '/api/placeholder/400/250',
+    imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=400&h=250&fit=crop',
     tags: ['Renewable Energy', 'Environment', 'Climate', 'Sustainability']
   },
   {
@@ -64,7 +64,7 @@ const mockArticles = [
     publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
     views: 9800,
     featured: false,
-    imageUrl: '/api/placeholder/400/250',
+    imageUrl: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=250&fit=crop',
     tags: ['Space', 'Tourism', 'Technology', 'Innovation']
   },
   {
@@ -78,7 +78,7 @@ const mockArticles = [
     publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
     views: 15300,
     featured: false,
-    imageUrl: '/api/placeholder/400/250',
+    imageUrl: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=250&fit=crop',
     tags: ['Cryptocurrency', 'Finance', 'Investment', 'Blockchain']
   },
   {
@@ -92,7 +92,7 @@ const mockArticles = [
     publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
     views: 11200,
     featured: true,
-    imageUrl: '/api/placeholder/400/250',
+    imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=250&fit=crop',
     tags: ['Quantum Computing', 'Technology', 'Research', 'Innovation']
   },
   {
@@ -106,7 +106,7 @@ const mockArticles = [
     publishedAt: new Date(Date.now() - 16 * 60 * 60 * 1000),
     views: 18500,
     featured: true,
-    imageUrl: '/api/placeholder/400/250',
+    imageUrl: 'https://images.unsplash.com/photo-1569163139394-de4e4f43e4e5?w=400&h=250&fit=crop',
     tags: ['Climate Change', 'Environment', 'Politics', 'Sustainability']
   }
 ];
@@ -200,7 +200,7 @@ export default function SearchPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header />
       
-      <main className="pt-20">
+      <main className="pt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Search Header */}
           <div className="mb-8">
@@ -387,7 +387,7 @@ export default function SearchPage() {
                         {/* Article Image */}
                         <div className="md:w-48 flex-shrink-0">
                           <Link href={`/articles/${article.slug}`}>
-                            <div className="relative w-full h-32 md:h-24 rounded-lg overflow-hidden">
+                            <div className="relative w-full rounded-lg overflow-hidden" style={{aspectRatio: '4/3'}}>
                               <Image
                                 src={article.imageUrl}
                                 alt={article.title}

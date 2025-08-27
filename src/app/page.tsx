@@ -1,6 +1,7 @@
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/home/HeroSection';
+import { NewsTicker } from '@/components/home/NewsTicker';
 import { NewsGrid } from '@/components/home/NewsGrid';
 
 export default function Home() {
@@ -9,6 +10,7 @@ export default function Home() {
       <Header />
       <main id="main-content" className="pt-16" role="main" aria-label="Main content">
         <HeroSection />
+        <NewsTicker />
         <NewsGrid />
       </main>
       <Footer />

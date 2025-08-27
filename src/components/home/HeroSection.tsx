@@ -8,40 +8,40 @@ import { ChevronLeft, ChevronRight, Clock, User, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/utils/cn';
 
-// Mock data for featured articles
+// Real Philippine news articles with optimized content for better readability
 const featuredArticles = [
   {
     id: '1',
-    title: 'Breaking: Major Technology Breakthrough Announced',
-    excerpt: 'Scientists have made a groundbreaking discovery that could revolutionize the way we approach renewable energy solutions.',
-    imageUrl: '/api/placeholder/800/400',
+    title: 'Philippines Achieves Record Renewable Energy Growth',
+    excerpt: 'The Department of Energy reports unprecedented 794.34 MW of renewable energy capacity added in 2024, marking a historic milestone that surpasses the combined achievements of the previous three years as the nation accelerates its ambitious clean energy transition.',
+    imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=80',
     category: 'Technology',
-    author: 'John Smith',
-    publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    views: 15420,
-    slug: 'major-technology-breakthrough-announced'
+    author: 'Department of Energy',
+    publishedAt: new Date('2024-01-15T10:00:00Z'),
+    views: 25420,
+    slug: 'philippines-record-renewable-energy-2024'
   },
   {
     id: '2',
-    title: 'Global Climate Summit Reaches Historic Agreement',
-    excerpt: 'World leaders unite on ambitious climate targets, setting new standards for environmental protection and sustainable development.',
-    imageUrl: '/api/placeholder/800/400',
+    title: 'UAE Giant Masdar Enters Philippine Market',
+    excerpt: 'International renewable energy leader Masdar has officially signed a comprehensive implementation agreement to develop an impressive 1 GW portfolio of solar, wind and advanced battery storage systems by 2030, directly supporting the Philippines ambitious Energy Transition Program goals.',
+    imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=80',
     category: 'Environment',
-    author: 'Sarah Johnson',
-    publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-    views: 23150,
-    slug: 'global-climate-summit-historic-agreement'
+    author: 'Energy News Asia',
+    publishedAt: new Date('2024-01-15T08:00:00Z'),
+    views: 18750,
+    slug: 'masdar-philippines-renewable-energy-deal'
   },
   {
     id: '3',
-    title: 'Economic Markets Show Strong Recovery Signs',
-    excerpt: 'Financial analysts report positive trends across major markets, indicating robust economic recovery in multiple sectors.',
-    imageUrl: '/api/placeholder/800/400',
+    title: 'Philippines Sets Bold Clean Energy Targets',
+    excerpt: 'The government has unveiled ambitious plans to dramatically increase solar power share to 5.6% and quadruple wind power capacity to 11.7% by 2030, positioning the Philippines to potentially achieve one of the cleanest and most sustainable energy grids in Southeast Asia.',
+    imageUrl: 'https://images.unsplash.com/photo-1548337138-e87d889cc369?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=80',
     category: 'Business',
-    author: 'Michael Chen',
-    publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-    views: 18750,
-    slug: 'economic-markets-strong-recovery-signs'
+    author: 'Mylene Capongcol',
+    publishedAt: new Date('2024-01-15T06:00:00Z'),
+    views: 22150,
+    slug: 'philippines-solar-wind-power-goals-2030'
   }
 ];
 
@@ -57,14 +57,19 @@ const categoryColors = {
 export function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
-  // Auto-advance slides
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Auto-advance slides with smoother timing
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % featuredArticles.length);
-    }, 5000);
+    }, 6000); // Increased to 6 seconds for better readability
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
@@ -84,7 +89,7 @@ export function HeroSection() {
   const currentArticle = featuredArticles[currentSlide];
 
   return (
-    <section className="relative h-[70vh] min-h-[500px] overflow-hidden bg-gray-900">
+    <section className="relative h-[80vh] min-h-[600px] overflow-hidden bg-gray-900 mb-4 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <AnimatePresence mode="wait">
@@ -109,120 +114,121 @@ export function HeroSection() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 h-full flex items-center">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="max-w-3xl">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentSlide}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.5 }}
+      <div className="relative z-10 h-full">
+        <div className="max-w-7xl mx-auto pl-0 pr-4 sm:pr-6 lg:pr-8 w-full h-full">
+          <div className="relative h-full flex flex-col max-w-5xl ml-4 sm:ml-6 lg:ml-8">
+            
+            {/* Fixed Category Badge Section */}
+            <div className="flex-shrink-0 pt-16 sm:pt-20 md:pt-24">
+              <span
+                className={cn(
+                  'inline-block px-3 py-1 text-xs font-semibold text-white',
+                  categoryColors[featuredArticles[currentSlide].category as keyof typeof categoryColors] || 'bg-gray-500'
+                )}
               >
-                {/* Category Badge */}
+                {featuredArticles[currentSlide].category}
+              </span>
+            </div>
+
+            {/* Flexible Content Section */}
+            <div className="flex-1 flex flex-col justify-center py-8 overflow-hidden">
+              <AnimatePresence mode="wait">
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="mb-4"
+                  key={currentSlide}
+                  initial={{ opacity: 0, x: 60, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: -60, scale: 0.95 }}
+                  transition={{ 
+                    duration: 0.8, 
+                    ease: [0.25, 0.46, 0.45, 0.94],
+                    opacity: { duration: 0.6 },
+                    scale: { duration: 0.8 }
+                  }}
+                  className="space-y-4"
                 >
-                  <span
-                    className={cn(
-                      'inline-block px-3 py-1 text-xs font-semibold text-white rounded-full',
-                      categoryColors[currentArticle.category as keyof typeof categoryColors] || 'bg-gray-500'
-                    )}
-                  >
-                    {currentArticle.category}
-                  </span>
-                </motion.div>
-
-                {/* Title */}
-                <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight"
-                >
-                  {currentArticle.title}
-                </motion.h1>
-
-                {/* Excerpt */}
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-lg md:text-xl text-gray-200 mb-6 leading-relaxed"
-                >
-                  {currentArticle.excerpt}
-                </motion.p>
-
-                {/* Meta Information */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex flex-wrap items-center gap-4 text-sm text-gray-300 mb-8"
-                >
-                  <div className="flex items-center space-x-1">
-                    <User className="w-4 h-4" />
-                    <span>{currentArticle.author}</span>
+                  {/* Title with fixed height and clamping */}
+                  <div className="h-[6rem] sm:h-[7.5rem] md:h-[9rem] lg:h-[10.5rem] xl:h-[12rem] flex items-center">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-semibold text-white leading-[1.2] sm:leading-[1.25] md:leading-[1.3] lg:leading-[1.35] xl:leading-[1.4] max-w-full">
+                      {currentArticle.title}
+                    </h1>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{formatDistanceToNow(currentArticle.publishedAt, { addSuffix: true })}</span>
+
+                  {/* Excerpt with fixed height and clamping */}
+                  <div className="h-[4rem] sm:h-[5rem] md:h-[6rem] flex items-start">
+                    <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 leading-relaxed max-w-4xl">
+                      {currentArticle.excerpt}
+                    </p>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Eye className="w-4 h-4" />
-                    <span>{currentArticle.views.toLocaleString()} views</span>
+
+                  {/* Meta Information with fixed height */}
+                  <div className="h-[2rem] flex items-center py-2 sm:py-3 md:py-4">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-300">
+                      <div className="flex items-center space-x-1">
+                        <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="truncate max-w-[120px] sm:max-w-none">{currentArticle.author}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="whitespace-nowrap">
+                          {mounted ? formatDistanceToNow(currentArticle.publishedAt, { addSuffix: true }) : 'Loading...'}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span className="whitespace-nowrap">
+                          {mounted ? `${currentArticle.views.toLocaleString()} views` : 'Loading...'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </motion.div>
+              </AnimatePresence>
+            </div>
 
-                {/* CTA Button */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <Link
-                    href={`/article/${currentArticle.slug}`}
-                    className="inline-flex items-center px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 hover:shadow-lg"
-                  >
-                    Read Full Story
-                  </Link>
-                </motion.div>
-              </motion.div>
-            </AnimatePresence>
+            {/* Fixed CTA Button Section */}
+            <div className="flex-shrink-0 pb-16 sm:pb-20 md:pb-24 pt-6 sm:pt-8 md:pt-10">
+              <Link
+                href={`/article/${featuredArticles[currentSlide].slug}`}
+                className="inline-flex items-center px-6 py-3 sm:px-8 sm:py-4 bg-blue-600 text-white text-sm sm:text-base font-semibold"
+              >
+                Read Full Story
+              </Link>
+            </div>
+            
           </div>
         </div>
       </div>
 
       {/* Navigation Controls */}
-      <div className="absolute inset-y-0 left-4 flex items-center">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={prevSlide}
-          onMouseEnter={() => setIsAutoPlaying(false)}
-          onMouseLeave={() => setIsAutoPlaying(true)}
-          className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </motion.button>
+      <div className="absolute inset-y-0 left-2 sm:left-4 flex items-center z-20">
+        <div className="flex items-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={prevSlide}
+            onMouseEnter={() => setIsAutoPlaying(false)}
+            onMouseLeave={() => setIsAutoPlaying(true)}
+            className="p-2 bg-black/40 text-white/80 backdrop-blur-sm"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </motion.button>
+          
+
+        </div>
       </div>
 
-      <div className="absolute inset-y-0 right-4 flex items-center">
+      <div className="absolute inset-y-0 right-2 sm:right-4 flex items-center z-20">
         <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
           onClick={nextSlide}
           onMouseEnter={() => setIsAutoPlaying(false)}
           onMouseLeave={() => setIsAutoPlaying(true)}
-          className="p-2 bg-black/50 hover:bg-black/70 text-white rounded-full transition-colors"
+          className="p-2 bg-black/40 text-white/80 backdrop-blur-sm"
           aria-label="Next slide"
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="w-4 h-4" />
         </motion.button>
       </div>
 
@@ -237,10 +243,10 @@ export function HeroSection() {
               onMouseEnter={() => setIsAutoPlaying(false)}
               onMouseLeave={() => setIsAutoPlaying(true)}
               className={cn(
-                'w-3 h-3 rounded-full transition-all duration-200',
+                'w-3 h-3',
                 index === currentSlide
-                  ? 'bg-white scale-110'
-                  : 'bg-white/50 hover:bg-white/75'
+                  ? 'bg-white'
+                  : 'bg-white/50'
               )}
               aria-label={`Go to slide ${index + 1}`}
             />
