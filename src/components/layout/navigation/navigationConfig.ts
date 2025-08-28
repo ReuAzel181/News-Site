@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface NavItem {
   name: string;
   href: string;
@@ -20,14 +22,14 @@ export const navigationSections = {
     href: '#business-finance',
     icon: undefined
   },
-  sports: {
-    name: 'Sports',
-    href: '#sports',
-    icon: undefined
-  },
   technology: {
     name: 'Technology',
     href: '#technology',
+    icon: undefined
+  },
+  sports: {
+    name: 'Sports',
+    href: '#sports',
     icon: undefined
   },
   lifestyle: {
@@ -42,4 +44,12 @@ export const navigationSections = {
   }
 };
 
-export const navigation: NavItem[] = Object.values(navigationSections);
+export const navigation: NavItem[] = [
+  navigationSections.home,
+  navigationSections.breakingNews,
+  navigationSections.business,
+  navigationSections.technology,
+  navigationSections.sports,
+  navigationSections.lifestyle,
+  navigationSections.featuredVideos
+];

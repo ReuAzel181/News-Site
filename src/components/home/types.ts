@@ -2,6 +2,7 @@ export interface Article {
   id: string;
   title: string;
   excerpt: string;
+  content?: string;
   imageUrl: string;
   category: string;
   author: string;
@@ -9,4 +10,7 @@ export interface Article {
   views: number;
   slug: string;
   featured: boolean;
+  tags?: string[];
+  likes?: number;
+  url?: string;
 }

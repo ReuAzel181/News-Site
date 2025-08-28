@@ -33,7 +33,7 @@ export function Header() {
       setIsScrolled(window.scrollY > 10);
       
       // Detect active section based on scroll position
-      const sections = ['#', '#breaking-news', '#business-finance', '#sports', '#technology', '#lifestyle', '#featured-videos'];
+      const sections = ['#', '#breaking-news', '#business-finance', '#technology', '#sports', '#lifestyle', '#featured-videos'];
       const headerHeight = 80;
       
       for (let i = sections.length - 1; i >= 0; i--) {

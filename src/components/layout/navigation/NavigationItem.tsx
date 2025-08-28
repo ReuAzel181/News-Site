@@ -35,15 +35,20 @@ export function NavigationItem({
   if (variant === 'desktop') {
     return (
       <motion.div
-        key={item.name}
+        key={`nav-${item.href}-${index}`}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.1 }}
+        transition={{ delay: index * 0.1, duration: 0.3, ease: "easeOut" }}
+        whileHover={{ y: -2 }}
+        whileTap={{ y: 0 }}
       >
         <a
           href={item.href}
           role="menuitem"
-          onClick={(e) => onClick?.(e, item.href)}
+          onClick={(e) => {
+            e.preventDefault();
+            onClick?.(e, item.href);
+          }}
           className={cn(
             baseClasses.desktop,
             isActive && activeClasses.desktop,
@@ -57,18 +62,24 @@ export function NavigationItem({
   }
 
   return (
-    <a
-      key={item.name}
+    <motion.a
+      key={`mobile-nav-${item.href}`}
       href={item.href}
-      onClick={(e) => onClick?.(e, item.href)}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick?.(e, item.href);
+      }}
       className={cn(
         baseClasses.mobile,
         isActive && activeClasses.mobile,
         className
       )}
+      whileHover={{ x: 4 }}
+      whileTap={{ x: 0 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
     >
       {item.icon}
       <span>{item.name}</span>
-    </a>
+    </motion.a>
   );
 }

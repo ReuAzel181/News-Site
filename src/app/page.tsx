@@ -2,7 +2,7 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/home/HeroSection';
 import { NewsTicker } from '@/components/home/NewsTicker';
-import { NewsGrid } from '@/components/home/NewsGrid';
+import NewsGrid from '@/components/home/NewsGrid';
 
 export default function Home() {
   return (

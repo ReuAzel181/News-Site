@@ -25,9 +25,9 @@ export function FeaturedVideosSection({ videos }: FeaturedVideosSectionProps) {
       <div className="pt-8 px-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {videos.map((video) => (
-            <div key={video.id} className="group">
-              <div className="space-y-4">
-                <div className="relative w-full bg-gray-200/50 dark:bg-gray-700/50 overflow-hidden" style={{aspectRatio: '16/9'}}>
+            <div key={video.id} className="cursor-pointer">
+              <div className="space-y-3 p-3 bg-white dark:bg-gray-800">
+                <div className="relative w-full bg-gray-200 dark:bg-gray-700" style={{aspectRatio: '16/9'}}>
                   <iframe
                     src={`https://www.youtube.com/embed/${video.videoId}`}
                     title={video.title}

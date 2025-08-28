@@ -9,7 +9,14 @@ const nextConfig = {
     optimizeCss: true,
   },
   images: {
-    domains: ['images.unsplash.com', 'via.placeholder.com'],
+    domains: [
+      'images.unsplash.com', 
+      'via.placeholder.com', 
+      'ichef.bbci.co.uk',
+      'cdn.cnn.com',
+      'static.reuters.com',
+      'i.guim.co.uk'
+    ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     formats: ['image/webp', 'image/avif'],

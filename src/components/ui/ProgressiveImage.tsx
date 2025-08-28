@@ -28,7 +28,7 @@ export function ProgressiveImage({
   placeholder,
   fill = false,
   sizes,
-  quality = 75,
+  quality = 95,
 }: ProgressiveImageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
