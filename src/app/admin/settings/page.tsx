@@ -60,10 +60,10 @@ const settingsSections = [
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('general');
   const [settings, setSettings] = useState({
-    siteName: 'News Portal',
-    siteDescription: 'Your trusted source for breaking news and insights',
-    siteUrl: 'https://newsportal.com',
-    adminEmail: 'admin@newsportal.com',
+    siteName: 'BalitaPH',
+    siteDescription: 'Your trusted source for Filipino news and insights',
+    siteUrl: 'https://balitaph.com',
+    adminEmail: 'admin@balitaph.com',
     articlesPerPage: 12,
     enableComments: true,
     moderateComments: true,
@@ -400,7 +400,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold" style={{color: '#000057'}}>
             Settings
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
@@ -414,7 +414,7 @@ export default function SettingsPage() {
         <div className="lg:col-span-1">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-4">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">
+              <h3 className="text-sm font-medium mb-4" style={{color: '#000057'}}>
                 Settings Categories
               </h3>
               <nav className="space-y-1">
@@ -451,7 +451,7 @@ export default function SettingsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-lg font-semibold" style={{color: '#000057'}}>
                   {settingsSections.find(s => s.id === activeSection)?.name}
                 </h2>
                 <motion.button

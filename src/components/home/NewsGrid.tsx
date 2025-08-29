@@ -99,8 +99,14 @@ const NewsGrid: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const articles = await fetchMixedNews();
-        setNewsArticles(articles);
+        
+        const mockData = getMockNewsData();
+        console.log('Mock data loaded:', mockData.length, 'articles');
+        setNewsArticles(mockData);
+        
+        // Original RSS fetching code (commented out for debugging)
+        // const articles = await fetchMixedNews();
+        // setNewsArticles(articles);
       } catch (err) {
         console.error('Failed to fetch news:', err);
         setError('Failed to load news. Using fallback data.');
@@ -143,10 +149,10 @@ const NewsGrid: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--background)'}}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading latest news...</p>
+          <p style={{color: 'var(--muted-foreground)'}}>Loading latest news...</p>
         </div>
       </div>
     );
@@ -154,7 +160,7 @@ const NewsGrid: React.FC = () => {
 
   if (error && newsArticles.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button 
@@ -170,7 +176,7 @@ const NewsGrid: React.FC = () => {
 
   if (newsArticles.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 mb-4">No articles found.</p>
           <button 
@@ -185,7 +191,7 @@ const NewsGrid: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
           <div className="mb-6 bg-yellow-50 border border-yellow-200 p-4">
@@ -200,6 +206,7 @@ const NewsGrid: React.FC = () => {
             </div>
           </div>
         )}
+
 
         <BreakingNewsSection articles={newsArticles} onReadMore={handleReadMore} />
         <BusinessSection articles={newsArticles} onReadMore={handleReadMore} />

@@ -109,8 +109,8 @@ model ArticleTag {
 
 model AdminSettings {
   id                     String   @id @default(cuid())
-  siteName               String   @default("News Site")
-  siteDescription        String   @default("Your trusted source for news")
+  siteName               String   @default("BalitaPH")
+  siteDescription        String   @default("Your trusted source for Filipino news and insights")
   logoUrl                String?
   primaryColor           String   @default("#3B82F6")
   secondaryColor         String   @default("#1F2937")

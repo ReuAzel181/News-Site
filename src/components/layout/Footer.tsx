@@ -1,221 +1,198 @@
-'use client';
+import React from 'react';
+import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, Newspaper, ArrowRight, Globe, Award, Users } from 'lucide-react';
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { 
-  Facebook, 
-  Twitter, 
-  Instagram, 
-  Youtube, 
-  Mail, 
-  Phone, 
-  MapPin,
-  Newspaper
-} from 'lucide-react';
-
-const footerLinks = {
-  company: [
-    { name: 'About Us', href: '/about' },
-    { name: 'Contact', href: '/contact' },
-    { name: 'Careers', href: '/careers' },
-    { name: 'Privacy Policy', href: '/privacy' },
-    { name: 'Terms of Service', href: '/terms' },
-  ],
-  categories: [
-    { name: 'Politics', href: '/category/politics' },
-    { name: 'Technology', href: '/category/technology' },
-    { name: 'Sports', href: '/category/sports' },
-    { name: 'Entertainment', href: '/category/entertainment' },
-    { name: 'Business', href: '/category/business' },
-  ],
-  support: [
-    { name: 'Help Center', href: '/help' },
-    { name: 'Report Issue', href: '/report' },
-    { name: 'Feedback', href: '/feedback' },
-    { name: 'Advertise', href: '/advertise' },
-    { name: 'Newsletter', href: '/newsletter' },
-  ],
-};
-
-const socialLinks = [
-  { name: 'Facebook', href: '#', icon: Facebook },
-  { name: 'Twitter', href: '#', icon: Twitter },
-  { name: 'Instagram', href: '#', icon: Instagram },
-  { name: 'YouTube', href: '#', icon: Youtube },
-];
-
-export function Footer() {
+const Footer = () => {
   return (
-    <footer className="bg-gray-900 dark:bg-black text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main Footer Content */}
-        <div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-slate-900 text-white">
+      {/* Main Footer Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {/* Brand Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="lg:col-span-1"
-          >
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <Newspaper className="w-5 h-5 text-white" />
+          <div className="lg:col-span-1">
+            <div className="space-y-8">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <Newspaper className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">BalitaPH</h3>
+                  <p className="text-sm text-slate-400">Trusted News Source</p>
+                </div>
               </div>
-              <span className="text-xl font-bold">NewsHub</span>
-            </div>
-            <p className="text-gray-400 mb-6 leading-relaxed">
-              Your trusted source for breaking news, in-depth analysis, and comprehensive coverage of events that matter.
-            </p>
-            
-            {/* Contact Info */}
-            <div className="space-y-2 text-sm text-gray-400">
-              <div className="flex items-center space-x-2">
-                <Mail className="w-4 h-4" />
-                <span>contact@newshub.com</span>
+              <p className="text-base text-slate-300 leading-relaxed">
+                Your trusted source for breaking news, in-depth analysis, and comprehensive coverage of events that shape our world.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Mail className="h-5 w-5 text-blue-400" />
+                  <span className="text-base text-slate-300">contact@balitaph.com</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Phone className="h-5 w-5 text-blue-400" />
+                  <span className="text-base text-slate-300">+1 (555) 123-4567</span>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
-                <span>+1 (555) 123-4567</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4" />
-                <span>123 News Street, Media City</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Company Links */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-          >
-            <h3 className="text-lg font-semibold mb-4">Company</h3>
-            <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors duration-200"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Categories */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-          >
-            <h3 className="text-lg font-semibold mb-4">Categories</h3>
-            <ul className="space-y-2">
-              {footerLinks.categories.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors duration-200"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Support */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-          >
-            <h3 className="text-lg font-semibold mb-4">Support</h3>
-            <ul className="space-y-2">
-              {footerLinks.support.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    href={link.href}
-                    className="text-gray-400 hover:text-white transition-colors duration-200"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        </div>
-
-        {/* Newsletter Signup */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="py-8 border-t border-gray-800"
-        >
-          <div className="max-w-md mx-auto text-center">
-            <h3 className="text-lg font-semibold mb-2">Stay Updated</h3>
-            <p className="text-gray-400 mb-4">Get the latest news delivered to your inbox</p>
-            <div className="flex space-x-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors"
-              >
-                Subscribe
-              </motion.button>
             </div>
           </div>
-        </motion.div>
 
-        {/* Bottom Section */}
-        <div className="py-6 border-t border-gray-800">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            {/* Copyright */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-gray-400 text-sm"
-            >
-              © {new Date().getFullYear()} NewsHub. All rights reserved.
-            </motion.p>
+          {/* Quick Access */}
+          <div>
+            <h4 className="text-base font-semibold mb-8">QUICK ACCESS</h4>
+            <ul className="space-y-6">
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <Newspaper className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  Breaking News
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <Globe className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  Trending Stories
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <Award className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  Live Updates
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <Users className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  News Archive
+                </a>
+              </li>
+            </ul>
+          </div>
 
-            {/* Social Links */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="flex space-x-4"
-            >
-              {socialLinks.map((social) => {
-                const Icon = social.icon;
-                return (
-                  <motion.a
-                    key={social.name}
-                    href={social.href}
-                    whileHover={{ scale: 1.1, y: -2 }}
-                    className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-                    aria-label={social.name}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </motion.a>
-                );
-              })}
-            </motion.div>
+          {/* Categories */}
+          <div>
+            <h4 className="text-base font-semibold mb-8">CATEGORIES</h4>
+            <ul className="space-y-6">
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <ArrowRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  Politics
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <ArrowRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  Technology
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <ArrowRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  Sports
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <ArrowRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  Entertainment
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <ArrowRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  Business
+                </a>
+              </li>
+              <li>
+                <a href="#" className="text-sm text-slate-300 hover:text-white transition-colors duration-200 flex items-center group">
+                  <ArrowRight className="h-4 w-4 mr-2 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all duration-200" />
+                  World News
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Newsletter Section */}
+        <div className="mt-16 pt-16 border-t border-slate-700">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h3 className="text-3xl font-bold mb-6">Be Among the First</h3>
+                <p className="text-lg text-slate-300 mb-6 leading-relaxed">
+                  Join our growing community and be among the first to receive breaking news, expert analysis, and comprehensive coverage delivered straight to your inbox.
+                </p>
+                <div className="flex items-center space-x-4 text-slate-400">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className="text-sm">Real-time updates</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                    <span className="text-sm">Ad-free content</span>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-800 p-8">
+                <h4 className="text-xl font-semibold mb-6 text-center">Join Our Community</h4>
+                <div className="space-y-4">
+                  <input
+                    type="email"
+                    placeholder="Enter your email address"
+                    className="w-full px-4 py-3 bg-slate-700 border-0 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                  />
+                  <button className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors duration-200 text-base">
+                    Be the First to Know
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400 mt-4 text-center">
+                  No spam, unsubscribe at any time
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Section */}
+      <div className="border-t border-slate-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
+              <p className="text-xs text-slate-400">
+                © 2024 BalitaPH. All rights reserved.
+              </p>
+              <div className="flex items-center space-x-6">
+                <a href="#" className="text-xs text-slate-400 hover:text-white transition-colors duration-200 flex items-center group">
+                  Privacy Policy
+                  <ArrowRight className="h-3 w-3 ml-1 transform group-hover:translate-x-1 transition-transform duration-200" />
+                </a>
+                <span className="text-xs text-slate-600">•</span>
+                <a href="#" className="text-xs text-slate-400 hover:text-white transition-colors duration-200 flex items-center group">
+                  Terms of Service
+                  <ArrowRight className="h-3 w-3 ml-1 transform group-hover:translate-x-1 transition-transform duration-200" />
+                </a>
+              </div>
+            </div>
+            <div className="flex items-center space-x-6">
+              <span className="text-xs text-slate-400">Follow us:</span>
+              <div className="flex space-x-4">
+                <a href="#" className="text-slate-400 hover:text-white transition-colors duration-200">
+                  <Facebook className="h-6 w-6" />
+                </a>
+                <a href="#" className="text-slate-400 hover:text-white transition-colors duration-200">
+                  <Twitter className="h-6 w-6" />
+                </a>
+                <a href="#" className="text-slate-400 hover:text-white transition-colors duration-200">
+                  <Instagram className="h-6 w-6" />
+                </a>
+                <a href="#" className="text-slate-400 hover:text-white transition-colors duration-200">
+                  <Youtube className="h-6 w-6" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </footer>
   );
-}
+};
+
+export default Footer;

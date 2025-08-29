@@ -20,29 +20,36 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
     !article.featured && !priorityCategories.includes(article.category)
   );
   
-  const breakingNews = [...featuredArticles, ...priorityArticles, ...otherArticles].slice(0, 4);
+  const breakingNews = [...featuredArticles, ...priorityArticles, ...otherArticles]
+    .filter((article, index, self) => 
+      index === self.findIndex(a => a.id === article.id)
+    )
+    .slice(0, 4);
   const mainArticle = breakingNews[0];
   const sideArticles = breakingNews.slice(1, 4);
 
   return (
     <section className="mt-12 mb-16">
       <div className="max-w-7xl mx-auto">
-        <div id="breaking-news" className="px-6 py-4 border-b-2 border-blue-600 dark:border-blue-500">
-          <h2 className="text-xl font-bold uppercase tracking-wide text-gray-800 dark:text-gray-200" style={{color: '#333333'}}>Breaking News</h2>
+        <div id="breaking-news" className="py-4 border-b-2 border-deep-blue dark:border-deep-blue">
+        <div className="flex items-center mb-3">
+          <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
+          <h2 className="text-xl font-black uppercase tracking-wide text-left" style={{color: '#000057'}}>Breaking News</h2>
         </div>
+      </div>
         <div className="pt-8 px-6 pb-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-h-[650px] overflow-hidden">
             {/* Left Column - Main Article */}
             {mainArticle && (
               <div className="lg:col-span-2 cursor-pointer h-[600px]" onClick={() => onReadMore?.(mainArticle)}>
-                <div className="bg-white dark:bg-gray-800 h-full flex flex-col">
-                  <div className="relative w-full bg-gray-200 dark:bg-gray-700" style={{height: '350px'}}>
+                <div className="h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
+                  <div className="relative w-full" style={{height: '350px'}}>
                     <ProgressiveImage
                       src={mainArticle.imageUrl}
                       alt={mainArticle.title}
                       width={800}
                       height={350}
-                      className="w-full h-full object-cover object-center"
+                      className="w-full h-full"
                       priority
                       quality={95}
                     />
@@ -81,14 +88,20 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
               <div className="flex-1 flex flex-col">
                 {sideArticles.map((article, index) => (
                   <div key={article.id} className="cursor-pointer flex-1" onClick={() => onReadMore?.(article)}>
-                    <div className="bg-white dark:bg-gray-800 p-4 h-full flex space-x-4">
-                      <div className="relative w-24 h-24 bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+                    <div 
+                      className={`p-4 h-full flex space-x-4 ${index < sideArticles.length - 1 ? 'border-b' : ''}`}
+                      style={{
+                        backgroundColor: 'var(--card)',
+                        borderColor: 'var(--border)'
+                      }}
+                    >
+                      <div className="relative w-24 h-24 flex-shrink-0">
                         <ProgressiveImage
                           src={article.imageUrl}
                           alt={article.title}
                           width={96}
                           height={96}
-                          className="w-full h-full object-cover object-center"
+                          className="w-full h-full"
                           quality={95}
                         />
                       </div>

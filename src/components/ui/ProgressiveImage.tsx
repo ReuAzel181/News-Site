@@ -80,7 +80,7 @@ export function ProgressiveImage({
     return (
       <div
         ref={imgRef}
-        className={cn('bg-gray-200 dark:bg-gray-700 flex items-center justify-center', className)}
+        className={cn('flex items-center justify-center', className)}
         style={fill ? undefined : { width: width || 400, height: height || 300 }}
       >
         <div className="text-gray-400 text-center p-4">
@@ -115,7 +115,7 @@ export function ProgressiveImage({
         >
           {placeholder && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded animate-pulse" />
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
             </div>
           )}
         </motion.div>

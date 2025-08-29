@@ -14,7 +14,7 @@ const featuredArticles = [
     id: '1',
     title: 'Philippines Achieves Record Renewable Energy Growth',
     excerpt: 'The Department of Energy reports unprecedented 794.34 MW of renewable energy capacity added in 2024, marking a historic milestone that surpasses the combined achievements of the previous three years as the nation accelerates its ambitious clean energy transition.',
-    imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90',
     category: 'Technology',
     author: 'Department of Energy',
     publishedAt: new Date('2024-01-15T10:00:00Z'),
@@ -25,7 +25,7 @@ const featuredArticles = [
     id: '2',
     title: 'UAE Giant Masdar Enters Philippine Market',
     excerpt: 'International renewable energy leader Masdar has officially signed a comprehensive implementation agreement to develop an impressive 1 GW portfolio of solar, wind and advanced battery storage systems by 2030, directly supporting the Philippines ambitious Energy Transition Program goals.',
-    imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90',
     category: 'Environment',
     author: 'Energy News Asia',
     publishedAt: new Date('2024-01-15T08:00:00Z'),
@@ -36,7 +36,7 @@ const featuredArticles = [
     id: '3',
     title: 'Philippines Sets Bold Clean Energy Targets',
     excerpt: 'The government has unveiled ambitious plans to dramatically increase solar power share to 5.6% and quadruple wind power capacity to 11.7% by 2030, positioning the Philippines to potentially achieve one of the cleanest and most sustainable energy grids in Southeast Asia.',
-    imageUrl: 'https://images.unsplash.com/photo-1548337138-e87d889cc369?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1548337138-e87d889cc369?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90',
     category: 'Business',
     author: 'Mylene Capongcol',
     publishedAt: new Date('2024-01-15T06:00:00Z'),
@@ -89,7 +89,7 @@ export function HeroSection() {
   const currentArticle = featuredArticles[currentSlide];
 
   return (
-    <section className="relative h-[80vh] min-h-[600px] overflow-hidden bg-gray-900 mb-4 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20">
+    <section className="relative h-[85vh] min-h-[650px] overflow-hidden mb-4 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <AnimatePresence mode="wait">
@@ -154,14 +154,14 @@ export function HeroSection() {
                   </div>
 
                   {/* Excerpt with fixed height and clamping */}
-                  <div className="h-[4rem] sm:h-[5rem] md:h-[6rem] flex items-start">
-                    <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 leading-relaxed max-w-4xl">
+                  <div className="h-[4.5rem] sm:h-[5.5rem] md:h-[6.5rem] flex items-start mb-4">
+                    <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-200 leading-relaxed max-w-4xl line-clamp-3">
                       {currentArticle.excerpt}
                     </p>
                   </div>
 
                   {/* Meta Information with fixed height */}
-                  <div className="h-[2rem] flex items-center py-2 sm:py-3 md:py-4">
+                  <div className="h-[3rem] flex items-center py-2 sm:py-3 md:py-4 mt-2 px-2 sm:px-3 md:px-4">
                     <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-300">
                       <div className="flex items-center space-x-1">
                         <User className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -189,7 +189,7 @@ export function HeroSection() {
             <div className="flex-shrink-0 pb-16 sm:pb-20 md:pb-24 pt-6 sm:pt-8 md:pt-10">
               <Link
                 href={`/article/${featuredArticles[currentSlide].slug}`}
-                className="inline-flex items-center px-6 py-3 sm:px-8 sm:py-4 bg-blue-600 text-white text-sm sm:text-base font-semibold"
+                className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2.5 bg-deep-blue text-white text-xs sm:text-sm font-semibold"
               >
                 Read Full Story
               </Link>

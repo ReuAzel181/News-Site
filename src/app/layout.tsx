@@ -14,14 +14,14 @@ const libreCaslon = Libre_Caslon_Text({
 
 export const metadata: Metadata = {
   title: {
-    default: "News Site - Your Trusted Source for News",
-    template: "%s | News Site"
+    default: "BalitaPH - Your Trusted Source for News",
+    template: "%s | BalitaPH"
   },
   description: "Stay informed with the latest news, breaking stories, and in-depth analysis from around the world. Your trusted source for reliable journalism.",
   keywords: ["news", "breaking news", "world news", "politics", "technology", "sports", "entertainment"],
-  authors: [{ name: "News Site Team" }],
-  creator: "News Site",
-  publisher: "News Site",
+  authors: [{ name: "BalitaPH Team" }],
+  creator: "BalitaPH",
+  publisher: "BalitaPH",
   formatDetection: {
     email: false,
     address: false,
@@ -32,15 +32,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName: "News Site",
-    title: "News Site - Your Trusted Source for News",
+    siteName: "BalitaPH",
+    title: "BalitaPH - Your Trusted Source for News",
     description: "Stay informed with the latest news, breaking stories, and in-depth analysis from around the world.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "News Site - Your Trusted Source for News",
+    title: "BalitaPH - Your Trusted Source for News",
     description: "Stay informed with the latest news, breaking stories, and in-depth analysis from around the world.",
-    creator: "@newssite",
+    creator: "@balitaph",
   },
   robots: {
     index: true,
@@ -62,12 +62,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(libreCaslon.variable, 'font-serif antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300')}>
+      <body className={cn(libreCaslon.variable, 'font-serif antialiased')}>
         <SkipLink href="#main-content">Skip to main content</SkipLink>
         <SkipLink href="#navigation">Skip to navigation</SkipLink>
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange={false}
         >

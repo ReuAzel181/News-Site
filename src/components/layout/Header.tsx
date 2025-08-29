@@ -94,9 +94,13 @@ export function Header() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-xl border-b border-gray-200/50 dark:border-gray-700/50'
-          : 'bg-white dark:bg-gray-900 shadow-md border-b border-gray-200 dark:border-gray-700'
+          ? 'backdrop-blur-md shadow-xl border-b'
+          : 'shadow-md border-b'
       )}
+      style={{
+        backgroundColor: isScrolled ? 'rgba(var(--background-rgb), 0.95)' : 'var(--background)',
+        borderColor: 'var(--border)'
+      }}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
@@ -113,7 +117,7 @@ export function Header() {
           >
             <Link href="/" className="flex items-center">
               <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-                NewsHub
+                BalitaPH
               </span>
             </Link>
           </motion.div>
@@ -131,7 +135,7 @@ export function Header() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-deep-blue dark:hover:text-deep-blue hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label="Search"
               >
                 <Search className="w-5 h-5" />
@@ -146,7 +150,7 @@ export function Header() {
               <div className="relative group">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
-                  className="flex items-center space-x-2 p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  className="flex items-center space-x-2 p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-deep-blue dark:hover:text-deep-blue hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
                   <User className="w-5 h-5" />
                   <span className="hidden sm:block text-sm font-medium">
@@ -191,7 +195,7 @@ export function Header() {
               aria-expanded={isMenuOpen}
               aria-controls="mobile-menu"
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-              className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 border-2 border-transparent hover:border-blue-600 dark:hover:border-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-deep-blue dark:hover:text-deep-blue hover:bg-gray-100 dark:hover:bg-gray-800 border-2 border-transparent hover:border-deep-blue dark:hover:border-deep-blue transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               <AnimatePresence mode="wait">
                 {isMenuOpen ? (

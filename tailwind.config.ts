@@ -16,6 +16,8 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        'deep-blue': '#000057',
+        primary: "var(--primary)",
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",

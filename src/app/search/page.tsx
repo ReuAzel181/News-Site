@@ -197,7 +197,7 @@ export default function SearchPage() {
   const hasActiveFilters = searchQuery || selectedCategory !== 'All' || sortBy !== 'relevance';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
       <Header />
       
       <main className="pt-16">
@@ -357,11 +357,11 @@ export default function SearchPage() {
                   {[...Array(3)].map((_, i) => (
                     <div key={i} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
                       <div className="flex space-x-4">
-                        <div className="w-24 h-24 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
+                        <div className="w-24 h-24 bg-white dark:bg-gray-600 rounded-lg"></div>
                         <div className="flex-1 space-y-3">
-                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4"></div>
-                          <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-1/2"></div>
-                          <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-full"></div>
+                          <div className="h-4 bg-white dark:bg-gray-600 rounded w-3/4"></div>
+                          <div className="h-3 bg-white dark:bg-gray-600 rounded w-1/2"></div>
+                          <div className="h-3 bg-white dark:bg-gray-600 rounded w-full"></div>
                         </div>
                       </div>
                     </div>
@@ -381,18 +381,18 @@ export default function SearchPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-shadow"
+                      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6"
                     >
                       <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
                         {/* Article Image */}
                         <div className="md:w-48 flex-shrink-0">
                           <Link href={`/articles/${article.slug}`}>
-                            <div className="relative w-full rounded-lg overflow-hidden" style={{aspectRatio: '4/3'}}>
+                            <div className="relative w-full" style={{aspectRatio: '4/3'}}>
                               <Image
                                 src={article.imageUrl}
                                 alt={article.title}
                                 fill
-                                className="object-cover hover:scale-105 transition-transform duration-300"
+                                className="object-cover"
                               />
                             </div>
                           </Link>

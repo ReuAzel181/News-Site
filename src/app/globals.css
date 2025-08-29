@@ -2,12 +2,13 @@
 
 :root {
   --background: #ffffff;
+  --background-rgb: 255, 255, 255;
   --foreground: #171717;
   --card: #ffffff;
   --card-foreground: #171717;
   --popover: #ffffff;
   --popover-foreground: #171717;
-  --primary: #2563eb;
+  --primary: #000057;
   --primary-foreground: #ffffff;
   --secondary: #f1f5f9;
   --secondary-foreground: #0f172a;
@@ -24,25 +25,26 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --card: #111111;
-  --card-foreground: #ededed;
-  --popover: #111111;
-  --popover-foreground: #ededed;
-  --primary: #3b82f6;
+  --background: #0f0f23;
+  --background-rgb: 15, 15, 35;
+  --foreground: #e2e8f0;
+  --card: #1a1a2e;
+  --card-foreground: #e2e8f0;
+  --popover: #1a1a2e;
+  --popover-foreground: #e2e8f0;
+  --primary: #4f46e5;
   --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
+  --secondary: #16213e;
+  --secondary-foreground: #cbd5e1;
+  --muted: #16213e;
   --muted-foreground: #94a3b8;
   --accent: #1e293b;
-  --accent-foreground: #f8fafc;
+  --accent-foreground: #f1f5f9;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --border: #334155;
-  --input: #334155;
-  --ring: #3b82f6;
+  --border: #2d3748;
+  --input: #2d3748;
+  --ring: #6366f1;
 }
 
 * {
@@ -53,7 +55,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-libre-caslon), Georgia, 'Times New Roman', Times, serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Removed transitions for flat design */
 }
 
 /* Smooth transitions for theme changes */
@@ -87,48 +89,7 @@ body {
   outline-offset: 2px;
 }
 
-/* Animation utilities */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
+/* Animations removed for flat design */
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {

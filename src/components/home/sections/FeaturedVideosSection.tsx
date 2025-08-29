@@ -19,14 +19,17 @@ interface FeaturedVideosSectionProps {
 export function FeaturedVideosSection({ videos }: FeaturedVideosSectionProps) {
   return (
     <div className="mt-12">
-      <div id="featured-videos" className="px-6 py-4 border-b-2 border-blue-600 dark:border-blue-500">
-        <h2 className="text-xl font-bold uppercase tracking-wide text-gray-800 dark:text-gray-200" style={{color: '#333333'}}>Featured Videos</h2>
+      <div id="featured-videos" className="py-4 border-b-2 border-deep-blue dark:border-deep-blue">
+        <div className="flex items-center mb-3">
+          <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
+          <h2 className="text-xl font-black uppercase tracking-wide text-left" style={{color: '#000057'}}>Featured Videos</h2>
+        </div>
       </div>
       <div className="pt-8 px-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {videos.map((video) => (
             <div key={video.id} className="cursor-pointer">
-              <div className="space-y-3 p-3 bg-white dark:bg-gray-800">
+              <div className="space-y-3 p-3">
                 <div className="relative w-full bg-gray-200 dark:bg-gray-700" style={{aspectRatio: '16/9'}}>
                   <iframe
                     src={`https://www.youtube.com/embed/${video.videoId}`}

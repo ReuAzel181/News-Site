@@ -11,7 +11,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       defaultTheme="system"
       enableSystem={true}
       disableTransitionOnChange={false}
-      storageKey="news-site-theme"
+      storageKey="balitaph-theme"
       {...props}
     >
       {children}

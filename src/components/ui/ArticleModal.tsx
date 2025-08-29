@@ -95,7 +95,7 @@ export function ArticleModal({ isOpen, onClose, article }: ArticleModalProps) {
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <div className="relative">
         {/* Hero Image */}
-        <div className="relative" style={{aspectRatio: '4/3'}}>
+        <div className="relative" style={{aspectRatio: '16/9'}}>
           <Image
             src={article.imageUrl}
             alt={article.title}
