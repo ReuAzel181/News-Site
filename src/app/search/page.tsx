@@ -21,7 +21,7 @@ import Image from 'next/image';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/utils/cn';
 import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
+import Footer from '@/components/layout/Footer';
 
 // Mock data for search results
 const mockArticles = [
@@ -355,13 +355,13 @@ export default function SearchPage() {
                   className="space-y-6"
                 >
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
+                    <div key={i} className="bg-white dark:bg-gray-800 p-6 animate-pulse">
                       <div className="flex space-x-4">
-                        <div className="w-24 h-24 bg-white dark:bg-gray-600 rounded-lg"></div>
+                        <div className="w-24 h-24 bg-white dark:bg-gray-600"></div>
                         <div className="flex-1 space-y-3">
-                          <div className="h-4 bg-white dark:bg-gray-600 rounded w-3/4"></div>
-                          <div className="h-3 bg-white dark:bg-gray-600 rounded w-1/2"></div>
-                          <div className="h-3 bg-white dark:bg-gray-600 rounded w-full"></div>
+                          <div className="h-4 bg-white dark:bg-gray-600 w-3/4"></div>
+                          <div className="h-3 bg-white dark:bg-gray-600 w-1/2"></div>
+                          <div className="h-3 bg-white dark:bg-gray-600 w-full"></div>
                         </div>
                       </div>
                     </div>
@@ -381,7 +381,7 @@ export default function SearchPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-6"
+                      className="bg-white dark:bg-gray-800 p-6"
                     >
                       <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
                         {/* Article Image */}
@@ -403,10 +403,10 @@ export default function SearchPage() {
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <Link href={`/articles/${article.slug}`}>
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-2">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white line-clamp-2">
                                   {article.title}
                                   {article.featured && (
-                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                                    <span className="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
                                       Featured
                                     </span>
                                   )}
@@ -431,7 +431,7 @@ export default function SearchPage() {
                                   <Eye className="w-4 h-4" />
                                   <span>{article.views.toLocaleString()} views</span>
                                 </div>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                                <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                                   {article.category}
                                 </span>
                               </div>
@@ -441,7 +441,7 @@ export default function SearchPage() {
                                 {article.tags.slice(0, 3).map(tag => (
                                   <span
                                     key={tag}
-                                    className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                                    className="inline-flex items-center px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                                   >
                                     #{tag}
                                   </span>

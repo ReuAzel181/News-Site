@@ -115,7 +115,7 @@ export function ProgressiveImage({
         >
           {placeholder && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 animate-pulse" />
             </div>
           )}
         </motion.div>

@@ -74,7 +74,7 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
                          {mainArticle.excerpt}
                        </p>
                      </div>
-                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                     <div className="mt-4 pt-4">
                        <span className="text-sm text-gray-500 dark:text-gray-400">{formatDistanceToNow(mainArticle.publishedAt, { addSuffix: true })}</span>
                      </div>
                    </div>
@@ -89,10 +89,9 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
                 {sideArticles.map((article, index) => (
                   <div key={article.id} className="cursor-pointer flex-1" onClick={() => onReadMore?.(article)}>
                     <div 
-                      className={`p-4 h-full flex space-x-4 ${index < sideArticles.length - 1 ? 'border-b' : ''}`}
+                      className="p-4 h-full flex space-x-4"
                       style={{
-                        backgroundColor: 'var(--card)',
-                        borderColor: 'var(--border)'
+                        backgroundColor: 'var(--card)'
                       }}
                     >
                       <div className="relative w-24 h-24 flex-shrink-0">
@@ -120,9 +119,9 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
                              {article.excerpt}
                            </p>
                          </div>
-                         <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                           <span className="text-xs text-gray-500 dark:text-gray-400">{formatDistanceToNow(article.publishedAt, { addSuffix: true })}</span>
-                         </div>
+                         <div className="mt-2 pt-2">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">{formatDistanceToNow(article.publishedAt, { addSuffix: true })}</span>
+                          </div>
                        </div>
                     </div>
                   </div>
