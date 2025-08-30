@@ -56,13 +56,14 @@ export function ProgressiveImage({
       }
     );
 
-    if (imgRef.current) {
-      observer.observe(imgRef.current);
+    const current = imgRef.current;
+    if (current) {
+      observer.observe(current);
     }
 
     return () => {
-      if (imgRef.current) {
-        observer.unobserve(imgRef.current);
+      if (current) {
+        observer.unobserve(current);
       }
     };
   }, [priority]);

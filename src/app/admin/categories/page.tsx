@@ -11,7 +11,7 @@ import {
   Tag,
   FileText,
   Eye,
-  Calendar,
+  // Calendar, // removed unused import
   TrendingUp
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -89,8 +89,8 @@ const mockCategories = [
 export default function CategoriesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [, setShowCreateModal] = useState(false); // ignore unused state value
+  const [, setEditingCategory] = useState<typeof mockCategories[number] | null>(null); // avoid any and unused state value
 
   const filteredCategories = mockCategories.filter(category => 
     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,6 +112,7 @@ export default function CategoriesPage() {
         : filteredCategories.map(category => category.id)
     );
   };
+  void selectAllCategories; // mark as used to satisfy no-unused-vars
 
   const handleBulkAction = (action: string) => {
     console.log(`Performing ${action} on categories:`, selectedCategories);
@@ -121,6 +122,7 @@ export default function CategoriesPage() {
   const totalArticles = mockCategories.reduce((sum, cat) => sum + cat.articleCount, 0);
   const activeCategories = mockCategories.filter(cat => cat.isActive).length;
   const totalViews = mockCategories.reduce((sum, cat) => sum + cat.totalViews, 0);
+  void totalViews; // mark as used to satisfy no-unused-vars
   const monthlyViews = mockCategories.reduce((sum, cat) => sum + cat.monthlyViews, 0);
 
   return (

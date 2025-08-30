@@ -7,12 +7,10 @@ import {
   Edit, 
   Trash2, 
   Search, 
-  Filter, 
   MoreVertical,
   Eye,
   Calendar,
   User,
-  Tag,
   TrendingUp,
   Newspaper
 } from 'lucide-react';

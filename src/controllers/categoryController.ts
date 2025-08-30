@@ -1,19 +1,9 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 
 export class CategoryController {
   static async getAllCategories() {
     return prisma.category.findMany({
-      include: {
-        _count: {
-          select: {
-            articles: {
-              where: {
-                published: true,
-              },
-            },
-          },
-        },
-      },
       orderBy: {
         name: 'asc',
       },
@@ -26,102 +16,36 @@ export class CategoryController {
         slug,
       },
       include: {
-        _count: {
-          select: {
-            articles: {
-              where: {
-                published: true,
-              },
-            },
-          },
-        },
+        articles: true,
       },
     });
   }
 
-  static async getCategoryArticles(slug: string, page: number = 1, limit: number = 12) {
-    const skip = (page - 1) * limit;
-
-    const category = await prisma.category.findUnique({
-      where: { slug },
-    });
-
-    if (!category) {
-      return null;
-    }
-
-    const [articles, total] = await Promise.all([
-      prisma.article.findMany({
-        where: {
-          categoryId: category.id,
-          published: true,
+  static async getCategoryArticles(slug: string) {
+    return prisma.article.findMany({
+      where: {
+        category: {
+          slug,
         },
-        include: {
-          author: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
-          category: true,
-          tags: {
-            include: {
-              tag: true,
-            },
-          },
-        },
-        orderBy: {
-          publishedAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.article.count({
-        where: {
-          categoryId: category.id,
-          published: true,
-        },
-      }),
-    ]);
-
-    return {
-      category,
-      articles,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+        published: true,
       },
-    };
+      orderBy: {
+        publishedAt: 'desc',
+      },
+      include: {
+        author: true,
+        category: true,
+      },
+    });
   }
 
-  // Admin methods
-  static async createCategory(data: { name: string; description?: string; color?: string }) {
-    const slug = data.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-
+  static async createCategory(data: Prisma.CategoryCreateInput) {
     return prisma.category.create({
-      data: {
-        ...data,
-        slug,
-      },
+      data,
     });
   }
 
-  static async updateCategory(id: string, data: { name?: string; description?: string; color?: string }) {
-    const updateData: any = { ...data };
-    
-    if (data.name) {
-      updateData.slug = data.name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
-    }
-
+  static async updateCategory(id: string, updateData: Prisma.CategoryUpdateInput) {
     return prisma.category.update({
       where: { id },
       data: updateData,
@@ -129,26 +53,17 @@ export class CategoryController {
   }
 
   static async deleteCategory(id: string) {
-    // Check if category has articles
-    const articleCount = await prisma.article.count({
-      where: { categoryId: id },
-    });
-
-    if (articleCount > 0) {
-      throw new Error('Cannot delete category with existing articles');
-    }
-
     return prisma.category.delete({
       where: { id },
     });
   }
 
   static async getCategoriesWithArticleCount() {
-    return prisma.category.findMany({
+    const categories = await prisma.category.findMany({
       include: {
-        _count: {
+        articles: {
           select: {
-            articles: true,
+            id: true,
           },
         },
       },
@@ -156,5 +71,10 @@ export class CategoryController {
         name: 'asc',
       },
     });
+
+    return categories.map((category) => ({
+      ...category,
+      articleCount: category.articles.length,
+    }));
   }
 }

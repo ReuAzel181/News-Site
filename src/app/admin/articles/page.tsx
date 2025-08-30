@@ -7,11 +7,11 @@ import {
   Edit,
   Trash2,
   Search,
-  Filter,
+  // Filter, // remove unused
   Eye,
-  Calendar,
+  // Calendar, // remove unused
   User,
-  Tag,
+  // Tag, // remove unused
   MoreVertical,
   Star,
   Clock,
@@ -124,7 +124,7 @@ export default function ArticlesPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  // const [viewMode, setViewMode] = useState<'table' | 'grid'>('table'); // remove unused state
 
   const filteredArticles = mockArticles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

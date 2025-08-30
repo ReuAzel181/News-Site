@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
-import { Article, SearchFilters, PaginationParams } from '@/types';
+import type { Prisma } from '@prisma/client';
+import { SearchFilters, PaginationParams } from '@/types';
 
 export class ArticleController {
   static async getPublishedArticles(
@@ -10,15 +11,15 @@ export class ArticleController {
     const { page, limit } = pagination;
     const skip = (page - 1) * limit;
 
-    const where: any = {
+    const where: Prisma.ArticleWhereInput = {
       published: true,
     };
 
     if (query) {
       where.OR = [
-        { title: { contains: query, mode: 'insensitive' } },
-        { content: { contains: query, mode: 'insensitive' } },
-        { excerpt: { contains: query, mode: 'insensitive' } },
+        { title: { contains: query } },
+        { content: { contains: query } },
+        { excerpt: { contains: query } },
       ];
     }
 
@@ -42,14 +43,15 @@ export class ArticleController {
 
     if (author) {
       where.author = {
-        name: { contains: author, mode: 'insensitive' },
+        name: { contains: author },
       };
     }
 
     if (dateFrom || dateTo) {
-      where.publishedAt = {};
-      if (dateFrom) where.publishedAt.gte = dateFrom;
-      if (dateTo) where.publishedAt.lte = dateTo;
+      const publishedAtFilter: Prisma.DateTimeNullableFilter = {};
+      if (dateFrom) publishedAtFilter.gte = dateFrom;
+      if (dateTo) publishedAtFilter.lte = dateTo;
+      where.publishedAt = publishedAtFilter;
     }
 
     const [articles, total] = await Promise.all([
@@ -179,8 +181,12 @@ export class ArticleController {
   }
 
   // Admin methods
-  static async createArticle(data: any, authorId: string) {
-    const slug = data.title
+  static async createArticle(
+    data: Prisma.ArticleCreateInput,
+    authorId: string
+  ) {
+    const title = data.title;
+    const slug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
@@ -189,7 +195,7 @@ export class ArticleController {
       data: {
         ...data,
         slug,
-        authorId,
+        author: { connect: { id: authorId } },
       },
       include: {
         author: true,
@@ -203,7 +209,10 @@ export class ArticleController {
     });
   }
 
-  static async updateArticle(id: string, data: any) {
+  static async updateArticle(
+    id: string,
+    data: Prisma.ArticleUpdateInput
+  ) {
     return prisma.article.update({
       where: { id },
       data,

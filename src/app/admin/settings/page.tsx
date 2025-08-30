@@ -5,16 +5,11 @@ import { motion } from 'framer-motion';
 import {
   Save,
   Settings,
-  Globe,
   Shield,
   Bell,
   Palette,
-  Database,
-  Mail,
   Users,
-  FileText,
-  Eye,
-  Lock
+  FileText
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -57,9 +52,29 @@ const settingsSections = [
   }
 ];
 
+type SettingsState = {
+  siteName: string;
+  siteDescription: string;
+  siteUrl: string;
+  adminEmail: string;
+  articlesPerPage: number;
+  enableComments: boolean;
+  moderateComments: boolean;
+  enableRegistration: boolean;
+  requireEmailVerification: boolean;
+  enableNotifications: boolean;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  maintenanceMode: boolean;
+  enableAnalytics: boolean;
+  cookieConsent: boolean;
+  darkModeDefault: boolean;
+  enableSocialLogin: boolean;
+};
+
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('general');
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<SettingsState>({
     siteName: 'BalitaPH',
     siteDescription: 'Your trusted source for Filipino news and insights',
     siteUrl: 'https://balitaph.com',
@@ -79,7 +94,7 @@ export default function SettingsPage() {
     enableSocialLogin: true
   });
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleSettingChange = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 

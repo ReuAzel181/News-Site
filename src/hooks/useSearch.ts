@@ -1,75 +1,55 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce } from './useDebounce';
 import { SearchFilters } from '@/types';
 
-interface UseSearchProps {
-  initialQuery?: string;
-  initialFilters?: SearchFilters;
-  onSearch?: (query: string, filters: SearchFilters) => void;
-  debounceMs?: number;
+interface UseSearchProps<T> {
+  items: T[];
+  searchFields: (keyof T)[];
+  initialFilters?: Partial<SearchFilters>;
 }
 
-export function useSearch({
-  initialQuery = '',
-  initialFilters = {},
-  onSearch,
-  debounceMs = 300,
-}: UseSearchProps = {}) {
-  const [query, setQuery] = useState(initialQuery);
-  const [filters, setFilters] = useState<SearchFilters>(initialFilters);
-  const [isSearching, setIsSearching] = useState(false);
+export function useSearch<T>({ items, searchFields, initialFilters = {} }: UseSearchProps<T>) {
+  const [query, setQuery] = useState(initialFilters.query || '');
+  const [filters, setFilters] = useState<SearchFilters>({
+    query: initialFilters.query || '',
+    category: initialFilters.category || '',
+    tags: initialFilters.tags || [],
+    author: initialFilters.author || '',
+    dateFrom: initialFilters.dateFrom,
+    dateTo: initialFilters.dateTo,
+  });
 
-  const debouncedQuery = useDebounce(query, debounceMs);
-
-  const searchParams = useMemo(() => ({
-    query: debouncedQuery,
-    ...filters,
-  }), [debouncedQuery, filters]);
+  const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
-    if (onSearch && (debouncedQuery || Object.keys(filters).length > 0)) {
-      setIsSearching(true);
-      onSearch(debouncedQuery, filters);
-      setIsSearching(false);
-    }
-  }, [debouncedQuery, filters, onSearch]);
+    setFilters((prev) => ({ ...prev, query: debouncedQuery }));
+  }, [debouncedQuery]);
 
-  const updateFilter = (key: keyof SearchFilters, value: any) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-    }));
+  const updateFilter = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K]) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const removeFilter = (key: keyof SearchFilters) => {
-    setFilters(prev => {
-      const newFilters = { ...prev };
-      delete newFilters[key];
-      return newFilters;
-    });
-  };
+  const filteredItems = useMemo(() => {
+    if (!debouncedQuery) return items;
 
-  const clearFilters = () => {
-    setFilters({});
-    setQuery('');
-  };
+    const lowerQuery = debouncedQuery.toLowerCase();
 
-  const hasActiveFilters = useMemo(() => {
-    return query.length > 0 || Object.keys(filters).length > 0;
-  }, [query, filters]);
+    return items.filter((item) =>
+      searchFields.some((field) => {
+        const value = item[field];
+        if (value == null) return false;
+        return String(value).toLowerCase().includes(lowerQuery);
+      })
+    );
+  }, [items, searchFields, debouncedQuery]);
 
   return {
     query,
     setQuery,
     filters,
-    setFilters,
     updateFilter,
-    removeFilter,
-    clearFilters,
-    searchParams,
-    isSearching,
-    hasActiveFilters,
+    filteredItems,
   };
 }

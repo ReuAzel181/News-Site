@@ -27,7 +27,7 @@ export function TechnologySection({ articles, onReadMore }: TechnologySectionPro
       </div>
       <div className="pt-8 px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-0">
-          {techNews.map((article, index) => (
+          {techNews.map((article) => (
             <div key={article.id} className="cursor-pointer relative" onClick={() => onReadMore?.(article)}>
               <div className="space-y-3 p-6" style={{backgroundColor: 'var(--card)'}}>
                 {/* Removed all borders and dividers for flat design */}

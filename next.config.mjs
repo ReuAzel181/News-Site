@@ -1,13 +1,15 @@
-const path = require('path');
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  turbopack: {
-    root: path.join(__dirname),
-  },
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false,
   },
+  outputFileTracingRoot: path.join(__dirname),
   images: {
     domains: [
       'images.unsplash.com', 
@@ -31,49 +33,31 @@ const nextConfig = {
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
         ],
       },
       {
         source: '/api/(.*)',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=300, s-maxage=300',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=300, s-maxage=300' },
         ],
       },
       {
         source: '/_next/static/(.*)',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
       {
         source: '/_next/image(.*)',
         headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
     ];
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;

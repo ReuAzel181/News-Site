@@ -36,7 +36,7 @@ export default function SignInPage() {
           router.push('/');
         }
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);

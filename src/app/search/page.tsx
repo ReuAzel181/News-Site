@@ -9,11 +9,7 @@ import {
   Calendar,
   User,
   Eye,
-  Clock,
-  Tag,
-  TrendingUp,
-  SortAsc,
-  SortDesc
+  Tag
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';

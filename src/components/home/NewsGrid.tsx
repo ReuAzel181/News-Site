@@ -1,13 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, User, Eye, RefreshCw } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-
-import { cn } from '@/utils/cn';
-import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 import { ArticleModal } from '@/components/ui/ArticleModal';
 import {
   BreakingNewsSection,
@@ -20,33 +13,8 @@ import {
 import { Article } from './types';
 import { fetchMixedNews, getMockNewsData } from '@/services/newsService';
 
-// Mock news data removed - now using dynamic data from newsService
-
-// Category colors for news sections
-const categoryColors = {
-  'Breaking': 'bg-red-600',
-  'Politics': 'bg-blue-600',
-  'Business': 'bg-green-600',
-  'Sports': 'bg-orange-600',
-  'Technology': 'bg-purple-600',
-  'Health': 'bg-pink-600',
-  'Entertainment': 'bg-yellow-600',
-  'International': 'bg-indigo-600',
-  'National': 'bg-gray-600',
-  'Finance': 'bg-emerald-600',
-  'Legal': 'bg-slate-600',
-  'Religion': 'bg-amber-600',
-  'Agriculture': 'bg-lime-600',
-  'Environment': 'bg-teal-600',
-  'Education': 'bg-cyan-600',
-  'Transportation': 'bg-violet-600',
-  'Tourism': 'bg-rose-600',
-  'Aviation': 'bg-sky-600',
-  'Energy': 'bg-stone-600',
-  'National Security': 'bg-red-700'
-};
-
-// YouTube videos for the featured videos section
+// Note: Currently using mock news data via getMockNewsData() for debugging.
+// To enable live fetching, use fetchMixedNews() in loadNews and refreshNews.
 // YouTube videos data
 const youtubeVideos = [
   {

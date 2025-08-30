@@ -86,7 +86,7 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
             <div className="h-[600px] flex flex-col">
               {/* All Cards - Full Height Distribution */}
               <div className="flex-1 flex flex-col">
-                {sideArticles.map((article, index) => (
+                {sideArticles.map((article) => (
                   <div key={article.id} className="cursor-pointer flex-1" onClick={() => onReadMore?.(article)}>
                     <div 
                       className="p-4 h-full flex space-x-4"

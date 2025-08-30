@@ -35,7 +35,7 @@ export default function Error({ error, reset }: ErrorProps) {
           </h1>
           
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            We encountered an unexpected error. Don't worry, our team has been notified.
+            We encountered an unexpected error. Don&apos;t worry, our team has been notified.
           </p>
           
           {/* Error details (only in development) */}
