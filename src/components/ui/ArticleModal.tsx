@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 import { Clock, User, Eye, Share2, Bookmark } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Modal } from './Modal';
@@ -96,14 +96,14 @@ export function ArticleModal({ isOpen, onClose, article }: ArticleModalProps) {
       <div className="relative">
         {/* Hero Image */}
         <div className="relative" style={{aspectRatio: '16/9'}}>
-          <Image
+          <ProgressiveImage
             src={article.imageUrl}
             alt={article.title}
             fill
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           
           {/* Category Badge */}
           <div className="absolute top-4 left-4">

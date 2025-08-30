@@ -3,13 +3,18 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 import { Article } from '../types';
+import { useSession } from 'next-auth/react';
 
 interface BreakingNewsSectionProps {
   articles: Article[];
   onReadMore?: (article: Article) => void;
+  onEdit?: (article: Article) => void;
+  onEditBreaking?: (article: Article) => void;
 }
 
-export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectionProps) {
+export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaking }: BreakingNewsSectionProps) {
+  const { data: session } = useSession();
+  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
   // Get featured articles first, then fill with recent articles from priority categories
   const featuredArticles = articles.filter(article => article.featured);
   const priorityCategories = ['Politics', 'National Security', 'National', 'International', 'Legal'];
@@ -31,10 +36,10 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
   return (
     <section className="mt-12 mb-16">
       <div className="max-w-7xl mx-auto">
-        <div id="breaking-news" className="py-4 border-b-2 border-deep-blue dark:border-deep-blue">
+        <div id="breaking-news" className="py-4">
         <div className="flex items-center mb-3">
           <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
-          <h2 className="text-xl font-black uppercase tracking-wide text-left" style={{color: '#000057'}}>Breaking News</h2>
+          <h2 className="text-xl font-black uppercase tracking-wide text-left text-deep-blue news-title">Breaking News</h2>
         </div>
       </div>
         <div className="pt-8 px-6 pb-8">
@@ -42,6 +47,18 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
             {/* Left Column - Main Article */}
             {mainArticle && (
               <div className="lg:col-span-2 cursor-pointer h-[600px]" onClick={() => onReadMore?.(mainArticle)}>
+                {isAdmin && onEdit && (
+                  <div className="w-full flex justify-end mb-2">
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-xs font-semibold bg-black text-white"
+                      onClick={(e) => { e.stopPropagation(); (onEditBreaking ?? onEdit)(mainArticle); }}
+                      aria-label={`Edit ${mainArticle.title}`}
+                    >
+                      Edit
+                    </button>
+                  </div>
+                )}
                 <div className="h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
                   <div className="relative w-full" style={{height: '350px'}}>
                     <ProgressiveImage
@@ -52,6 +69,8 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
                       className="w-full h-full"
                       priority
                       quality={95}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 66vw"
                     />
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
@@ -67,15 +86,15 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
                            <span className="font-medium text-gray-700 dark:text-gray-300">{mainArticle.author}</span>
                          </div>
                        </div>
-                       <h3 className="text-2xl font-bold line-clamp-3 leading-tight" style={{color: '#333333'}}>
+                       <h3 className="text-2xl font-bold line-clamp-3 leading-tight news-title">
                          {mainArticle.title}
                        </h3>
-                       <p className="text-gray-600 dark:text-gray-400 line-clamp-3 text-base leading-relaxed">
+                       <p className="line-clamp-3 text-base leading-relaxed news-content">
                          {mainArticle.excerpt}
                        </p>
                      </div>
                      <div className="mt-4 pt-4">
-                       <span className="text-sm text-gray-500 dark:text-gray-400">{formatDistanceToNow(mainArticle.publishedAt, { addSuffix: true })}</span>
+                       <span className="text-sm news-meta">{formatDistanceToNow(mainArticle.publishedAt, { addSuffix: true })}</span>
                      </div>
                    </div>
                 </div>
@@ -88,6 +107,18 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
               <div className="flex-1 flex flex-col">
                 {sideArticles.map((article) => (
                   <div key={article.id} className="cursor-pointer flex-1" onClick={() => onReadMore?.(article)}>
+                    {isAdmin && onEdit && (
+                      <div className="w-full flex justify-end mb-2">
+                        <button
+                          type="button"
+                          className="px-2 py-1 text-xs font-semibold bg-black text-white"
+                          onClick={(e) => { e.stopPropagation(); (onEditBreaking ?? onEdit)(article); }}
+                          aria-label={`Edit ${article.title}`}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
                     <div 
                       className="p-4 h-full flex space-x-4"
                       style={{
@@ -102,6 +133,8 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
                           height={96}
                           className="w-full h-full"
                           quality={95}
+                          fill
+                          sizes="96px"
                         />
                       </div>
                       <div className="flex-1 flex flex-col min-w-0">
@@ -110,17 +143,17 @@ export function BreakingNewsSection({ articles, onReadMore }: BreakingNewsSectio
                              <span className="inline-block px-3 py-1 text-xs font-semibold bg-red-600 text-white">
                                {article.category}
                              </span>
-                             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{article.author}</span>
+                             <span className="text-xs font-medium news-meta">{article.author}</span>
                            </div>
-                           <h4 className="text-sm font-semibold line-clamp-2 leading-tight" style={{color: '#333333'}}>
+                           <h4 className="text-sm font-semibold line-clamp-2 leading-tight news-title">
                              {article.title}
                            </h4>
-                           <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-tight">
+                           <p className="text-xs line-clamp-2 leading-tight news-content">
                              {article.excerpt}
                            </p>
                          </div>
                          <div className="mt-2 pt-2">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">{formatDistanceToNow(article.publishedAt, { addSuffix: true })}</span>
+                            <span className="text-xs news-meta">{formatDistanceToNow(article.publishedAt, { addSuffix: true })}</span>
                           </div>
                        </div>
                     </div>

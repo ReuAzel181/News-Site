@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/utils/cn';
 
@@ -55,16 +55,15 @@ export function ThemeToggle({
       case 'dark':
         return <Moon className={iconSize} />;
       case 'system':
-        return <Monitor className={iconSize} />;
+        // Show resolved theme icon instead of a desktop icon
+        return theme === 'dark' ? <Moon className={iconSize} /> : <Sun className={iconSize} />;
       default:
         return <Sun className={iconSize} />;
     }
   };
 
   const getCurrentIcon = () => {
-    if (actualTheme === 'system') {
-      return <Monitor className={iconSize} />;
-    }
+    // Always show sun/moon based on resolved theme
     return theme === 'dark' ? <Sun className={iconSize} /> : <Moon className={iconSize} />;
   };
 

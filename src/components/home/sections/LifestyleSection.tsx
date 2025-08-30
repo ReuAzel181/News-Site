@@ -3,13 +3,17 @@
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 import { Article } from '../types';
+import { useSession } from 'next-auth/react';
 
 interface LifestyleSectionProps {
   articles: Article[];
   onReadMore: (article: Article) => void;
+  onEdit?: (article: Article) => void;
 }
 
-export function LifestyleSection({ articles, onReadMore }: LifestyleSectionProps) {
+export function LifestyleSection({ articles, onReadMore, onEdit }: LifestyleSectionProps) {
+  const { data: session } = useSession();
+  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
   const lifestyleNews = articles
     .filter(article => 
       article.category === 'Lifestyle' || article.category === 'Entertainment'
@@ -21,17 +25,29 @@ export function LifestyleSection({ articles, onReadMore }: LifestyleSectionProps
 
   return (
     <div className="mt-12">
-      <div id="lifestyle" className="py-4 border-b-2 border-deep-blue dark:border-deep-blue">
+      <div id="lifestyle" className="py-4">
         <div className="flex items-center mb-3">
           <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
-          <h2 className="text-xl font-black uppercase tracking-wide text-left" style={{color: '#000057'}}>Lifestyle & Entertainment</h2>
+          <h2 className="text-xl font-black uppercase tracking-wide text-left text-deep-blue news-title">Lifestyle & Entertainment</h2>
         </div>
       </div>
       <div className="pt-8 px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-0 items-stretch">
           {lifestyleNews.map((article) => (
-            <div key={article.id} className="cursor-pointer relative" onClick={() => onReadMore?.(article)}>
-              <div className="space-y-3 p-6" style={{backgroundColor: 'var(--card)'}}>
+            <div key={article.id} className="cursor-pointer h-full" onClick={() => onReadMore?.(article)}>
+              {isAdmin && onEdit && (
+                <div className="w-full flex justify-end mb-2">
+                  <button
+                    type="button"
+                    className="px-2 py-1 text-xs font-semibold bg-black text-white"
+                    onClick={(e) => { e.stopPropagation(); onEdit(article); }}
+                    aria-label={`Edit ${article.title}`}
+                  >
+                    Edit
+                  </button>
+                </div>
+              )}
+              <div className="space-y-3 p-6 h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
                 {/* Removed all borders and dividers for flat design */}
                 <div className="relative w-full" style={{aspectRatio: '4/3'}}>
                   <ProgressiveImage
@@ -41,19 +57,21 @@ export function LifestyleSection({ articles, onReadMore }: LifestyleSectionProps
                     height={300}
                     className="w-full h-full"
                     quality={95}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 flex-1 flex flex-col">
                   <span className="inline-block px-2 py-1 text-xs font-semibold bg-pink-600 text-white">
                     {article.category}
                   </span>
-                  <h3 className="text-sm font-semibold line-clamp-2 leading-relaxed" style={{color: '#333333'}}>
+                  <h3 className="text-sm font-semibold line-clamp-2 news-title">
                     {article.title}
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                  <p className="text-xs line-clamp-2 news-content">
                     {article.excerpt}
                   </p>
-                  <div className="text-xs text-gray-500/80 dark:text-gray-400/80">
+                  <div className="text-xs news-meta mt-auto">
                     {formatDistanceToNow(article.publishedAt, { addSuffix: true })}
                   </div>
                 </div>

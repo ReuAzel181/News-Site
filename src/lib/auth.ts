@@ -1,47 +1,42 @@
+import 'server-only';
 import { NextAuthOptions } from 'next-auth';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from './prisma';
+import fs from 'fs';
+import path from 'path';
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  // Remove Prisma adapter for file-based admin credentials
   providers: [
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email
+        const credPath = path.join(process.cwd(), 'admin.credentials.json');
+        try {
+          const raw = fs.readFileSync(credPath, 'utf8');
+          const { username, password } = JSON.parse(raw) as { username: string; password: string };
+          if (
+            credentials?.username &&
+            credentials?.password &&
+            credentials.username === username &&
+            credentials.password === password
+          ) {
+            return {
+              id: 'admin-file-user',
+              email: 'admin@local',
+              name: 'Administrator',
+              role: 'ADMIN',
+              image: null as any
+            } as any;
           }
-        });
-
-        if (!user) {
+          return null;
+        } catch (e) {
+          console.error('Failed to read admin credentials file:', e);
           return null;
         }
-
-        // For demo purposes, we'll create a simple password check
-        // In production, you should hash passwords properly
-        const isPasswordValid = credentials.password === 'admin123' && user.role === 'ADMIN';
-        
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          image: user.image,
-        };
       }
     })
   ],
@@ -51,14 +46,17 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = user.role;
+        token.role = (user as any).role || 'USER';
       }
-      return token;
+      return token as any;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.sub!;
-        session.user.role = token.role as string;
+        (session as any).user = {
+          ...(session.user || {}),
+          id: token.sub as string,
+          role: (token as any).role as string
+        };
       }
       return session;
     }

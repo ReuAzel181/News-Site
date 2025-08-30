@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 import { cn } from '@/utils/cn';
 
 interface ProgressiveImageProps {
@@ -15,7 +14,8 @@ interface ProgressiveImageProps {
   placeholder?: string;
   fill?: boolean;
   sizes?: string;
-  quality?: number;
+  quality?: number; // optional; if provided we may use later, but we won't pass to next/image to avoid warnings
+  unoptimized?: boolean;
 }
 
 export function ProgressiveImage({
@@ -28,7 +28,9 @@ export function ProgressiveImage({
   placeholder,
   fill = false,
   sizes,
-  quality = 95,
+  // quality intentionally not defaulted to avoid Next.js warnings when not configured
+  quality,
+  unoptimized,
 }: ProgressiveImageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -77,12 +79,16 @@ export function ProgressiveImage({
     setIsLoading(false);
   };
 
-  if (hasError) {
+  const noImage = !src;
+  const isLocalPreview = typeof src === 'string' && (src.startsWith('blob:') || src.startsWith('data:'));
+  const isUnsplash = typeof src === 'string' && src.includes('images.unsplash.com');
+
+  // Show placeholder only when there is no image at all
+  if (noImage) {
     return (
       <div
         ref={imgRef}
-        className={cn('flex items-center justify-center', className)}
-        style={fill ? undefined : { width: width || 400, height: height || 300 }}
+        className={cn('relative flex items-center justify-center overflow-hidden bg-gray-200 dark:bg-gray-700', className)}
       >
         <div className="text-gray-400 text-center p-4">
           <svg
@@ -104,31 +110,74 @@ export function ProgressiveImage({
     );
   }
 
+  // Fallback to a plain <img> when using local preview (blob/data)
+  if (isLocalPreview) {
+    return (
+      <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
+        {isLoading && (
+          <div className="absolute inset-0 bg-gray-2 00 dark:bg-gray-700">
+            {placeholder && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600" />
+              </div>
+            )}
+          </div>
+        )}
+        <div className="relative w-full h-full">
+          <img
+            src={src}
+            alt={alt}
+            onLoad={handleLoad}
+            onError={handleError}
+            style={{
+              width: fill ? '100%' : (width ? `${width}px` : 'auto'),
+              height: fill ? '100%' : (height ? `${height}px` : 'auto'),
+              objectFit: fill ? 'cover' : undefined,
+              display: 'block'
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // If next/image fails (e.g. remote optimization 500), fallback to native <img>
+  if (hasError) {
+    return (
+      <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
+        <div className="relative w-full h-full">
+          <img
+            src={src}
+            alt={alt}
+            onLoad={handleLoad}
+            onError={() => { /* keep fallback */ }}
+            style={{
+              width: fill ? '100%' : (width ? `${width}px` : 'auto'),
+              height: fill ? '100%' : (height ? `${height}px` : 'auto'),
+              objectFit: fill ? 'cover' : undefined,
+              display: 'block'
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
-      {/* Loading placeholder */}
+      {/* Static loading placeholder: flat (no animations) */}
       {isLoading && (
-        <motion.div
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse"
-          style={fill ? undefined : { width: width || 400, height: height || 300 }}
-        >
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700">
           {placeholder && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 animate-pulse" />
+              <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600" />
             </div>
           )}
-        </motion.div>
+        </div>
       )}
 
       {/* Actual image */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isLoading ? 0 : 1 }}
-        transition={{ duration: 0.3 }}
-        className="relative"
-      >
+      <div className="relative w-full h-full">
         <Image
           src={src}
           alt={alt}
@@ -136,15 +185,18 @@ export function ProgressiveImage({
           height={fill ? undefined : (height ?? 300)}
           fill={fill}
           sizes={sizes}
-          quality={quality}
+          // quality intentionally omitted to avoid Next.js 16 warnings when not configured in next.config.mjs
           priority={priority}
           onLoad={handleLoad}
           onError={handleError}
-          className={`transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+          className={cn(
+            fill ? 'object-cover' : ''
+          )}
           placeholder={placeholder ? 'blur' : 'empty'}
           blurDataURL={placeholder}
+          unoptimized={unoptimized ?? isUnsplash}
         />
-      </motion.div>
+      </div>
     </div>
   );
 }

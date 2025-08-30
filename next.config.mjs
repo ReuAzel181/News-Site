@@ -20,7 +20,8 @@ const nextConfig = {
       'i.guim.co.uk'
     ],
     dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // Extend CSP to allow loading images from self, data, and blob
+    contentSecurityPolicy: "default-src 'self'; img-src 'self' data: blob: https:; script-src 'none'; sandbox;",
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

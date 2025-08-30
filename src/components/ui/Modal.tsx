@@ -11,6 +11,7 @@ interface ModalProps {
   children: React.ReactNode;
   className?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  hideCloseButton?: boolean;
 }
 
 const sizeClasses = {
@@ -21,7 +22,7 @@ const sizeClasses = {
   full: 'max-w-7xl'
 };
 
-export function Modal({ isOpen, onClose, children, className, size = 'lg' }: ModalProps) {
+export function Modal({ isOpen, onClose, children, className, size = 'lg', hideCloseButton = false }: ModalProps) {
   // Handle escape key press
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -69,13 +70,15 @@ export function Modal({ isOpen, onClose, children, className, size = 'lg' }: Mod
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close button */}
-              <button
-                onClick={onClose}
-                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {!hideCloseButton && (
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
               
               {/* Content */}
               <div className="overflow-y-auto max-h-[90vh]">

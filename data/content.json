@@ -1,0 +1,52 @@
+{
+  "breakingNews": [
+    "Supreme Court declares Articles of Impeachment vs VP Sara Duterte as unconstitutional",
+    "President Marcos addresses the nation on economic recovery plans",
+    "Iglesia ni Cristo holds National Rally for Peace with 1.5 million attendees",
+    "OFW remittances reach all-time high this quarter",
+    "Renewable energy projects accelerate nationwide development",
+    "Filipino scientists develop breakthrough cancer treatment",
+    "Gilas Pilipinas prepares for FIBA World Cup qualifiers"
+  ],
+  "availableTags": [
+    "Politics",
+    "National",
+    "International",
+    "National Security",
+    "Legal",
+    "Business",
+    "Technology",
+    "Sports",
+    "Lifestyle",
+    "Environment",
+    "Science",
+    "Finance",
+    "Entertainment",
+    "Health"
+  ],
+  "articleOverrides": {
+    "mock-business-1": {
+      "title": "Global Markets Rally as Central Banks Signal Policy Shifts",
+      "excerpt": "Major stock indices surge following coordinated statements from Federal Reserve and European Central Bank regarding interest rate adjustments. The Dow Jones gained 2.3% while the S&P 500 reached new highs as investors anticipate more accommodative monetary policies. Market analysts suggest this could mark the beginning of a sustained bull run driven by improved economic outlook and corporate earnings growth.",
+      "content": "Financial markets experienced significant gains today as investors responded positively to coordinated policy signals from major central banks. The Federal Reserve indicated a potential pause in rate hikes, while the European Central Bank suggested similar measures to support economic growth. This coordinated approach has boosted investor confidence across global markets, with technology and financial sectors leading the rally. Economic indicators show strengthening consumer spending and business investment, supporting the case for continued market optimism.",
+      "imageUrl": "/uploads/1756559423016-v27bz8brk6f.jpg",
+      "tags": [
+        "business",
+        "finance",
+        "markets"
+      ]
+    },
+    "mock-business-2": {
+      "title": "Tech Giants Report Record Quarterly Earnings",
+      "excerpt": "Leading technology companies exceed analyst expectations with strong revenue growth driven by cloud services and AI investments. Microsoft reported 15% year-over-year growth, while Google's parent company Alphabet saw 12% increase in advertising revenue. Amazon's AWS division continues to dominate cloud infrastructure with 32% market share, contributing significantly to overall profitability.",
+      "content": "The latest earnings season has delivered impressive results for major technology corporations, with cloud computing and artificial intelligence driving unprecedented growth. Microsoft's Azure platform grew 29% year-over-year, while its productivity suite benefited from hybrid work trends. Google's search advertising revenue rebounded strongly, and YouTube's creator economy generated $8.1 billion in revenue. These results demonstrate the resilience of tech companies and their ability to adapt to changing market conditions while investing heavily in future technologies.",
+      "imageUrl": "blob:http://localhost:3000/c74bca5e-394e-434c-a047-b0727eeef3fd",
+      "tags": [
+        "business",
+        "technology",
+        "earnings"
+      ]
+    }
+  },
+  "heroSlides": []
+}

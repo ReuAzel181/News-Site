@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArticleModal } from '@/components/ui/ArticleModal';
+import EditArticleModal from '@/components/ui/EditArticleModal';
+import BreakingNewsEditModal from '@/components/ui/BreakingNewsEditModal';
+import { useSession } from 'next-auth/react';
 import {
   BreakingNewsSection,
   BusinessSection,
@@ -12,6 +15,12 @@ import {
 } from './sections';
 import { Article } from './types';
 import { fetchMixedNews, getMockNewsData } from '@/services/newsService';
+
+interface ContentPayload {
+  breakingNews: string[];
+  availableTags: string[];
+  articleOverrides: Record<string, Partial<Article>>;
+}
 
 // Note: Currently using mock news data via getMockNewsData() for debugging.
 // To enable live fetching, use fetchMixedNews() in loadNews and refreshNews.
@@ -34,32 +43,38 @@ const youtubeVideos = [
     description: 'Breaking news coverage of the Supreme Court\'s declaration regarding the Articles of Impeachment against Vice President Sara Duterte.',
     videoId: '_zCam-VGggA', // GMA Integrated News - SC impeachment ruling
     thumbnail: 'https://img.youtube.com/vi/_zCam-VGggA/hqdefault.jpg',
-    duration: '22:45',
-    views: '856K',
-    publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    duration: '8:45',
+    views: '1.3M',
+    publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
     channel: 'GMA Integrated News'
   },
   {
     id: 'video3',
-    title: 'Iglesia ni Cristo National Rally for Peace - Full Coverage',
-    description: 'Complete coverage of the massive National Rally for Peace held at Quirino Grandstand, with 1.5 million attendees expressing their stance on current political issues.',
-    videoId: 'VRnpcXdDbz8', // INC National Rally for Peace 2025
-    thumbnail: 'https://img.youtube.com/vi/VRnpcXdDbz8/hqdefault.jpg',
-    duration: '45:18',
-    views: '3.2M',
-    publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    channel: 'GMA News'
+    title: 'Senate hearing: PNP chief on illegal gambling crackdown',
+    description: 'Highlights from the Senate hearing where the PNP chief discussed actions against illegal gambling operations across the country.',
+    videoId: 'qJZ8oQ9VxXk', // Example video on PNP hearing
+    thumbnail: 'https://img.youtube.com/vi/qJZ8oQ9VxXk/hqdefault.jpg',
+    duration: '12:10',
+    views: '850K',
+    publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+    channel: 'Rappler'
   }
 ];
 
 // NewsGrid component starts here
 const NewsGrid: React.FC = () => {
+  const { data: session } = useSession();
   // State for managing news articles
   const [newsArticles, setNewsArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [editingBreaking, setEditingBreaking] = useState<Article | null>(null);
+  const [isBreakingEditOpen, setIsBreakingEditOpen] = useState(false);
 
   // Fetch news data on component mount
   useEffect(() => {
@@ -67,18 +82,22 @@ const NewsGrid: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        
+        // Load persisted content payload (tags, overrides)
+        const contentRes = await fetch('/api/content', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+        const content: ContentPayload | null = contentRes?.data || null;
+        if (content?.availableTags) setAvailableTags(content.availableTags);
+
         const mockData = getMockNewsData();
-        console.log('Mock data loaded:', mockData.length, 'articles');
-        setNewsArticles(mockData);
-        
-        // Original RSS fetching code (commented out for debugging)
-        // const articles = await fetchMixedNews();
-        // setNewsArticles(articles);
+        // Apply article overrides if any
+        const withOverrides = content?.articleOverrides ? mockData.map((a) => ({
+          ...a,
+          ...(content.articleOverrides[a.id] || {})
+        })) : mockData;
+        console.log('Mock data loaded:', withOverrides.length, 'articles');
+        setNewsArticles(withOverrides);
       } catch (err) {
         console.error('Failed to fetch news:', err);
         setError('Failed to load news. Using fallback data.');
-        // Fallback to mock data if real news fails
         const mockArticles = getMockNewsData();
         setNewsArticles(mockArticles);
       } finally {
@@ -88,6 +107,32 @@ const NewsGrid: React.FC = () => {
 
     loadNews();
   }, []);
+
+  const handleSaveEdit = async (updated: Article) => {
+    setNewsArticles(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a));
+    setSelectedArticle(prev => (prev && prev.id === updated.id ? { ...prev, ...updated } : prev));
+    setIsEditOpen(false);
+    setEditingArticle(null);
+    setIsBreakingEditOpen(false);
+    setEditingBreaking(null);
+
+    // Persist override (only fields we allow override)
+    try {
+      await fetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ op: 'setArticleOverride', articleId: updated.id, patch: {
+          title: updated.title,
+          excerpt: updated.excerpt,
+          content: updated.content,
+          imageUrl: updated.imageUrl,
+          tags: updated.tags || []
+        } })
+      });
+    } catch (e) {
+      console.error('Failed to persist article override', e);
+    }
+  };
 
   const refreshNews = async () => {
     try {
@@ -115,11 +160,28 @@ const NewsGrid: React.FC = () => {
     setSelectedArticle(null);
   };
 
+  const handleEdit = (article: Article) => {
+    if (session?.user && (session.user as any).role === 'ADMIN') {
+      setEditingArticle(article);
+      setIsEditOpen(true);
+    }
+  };
+
+  const handleEditBreaking = (article: Article) => {
+    if (session?.user && (session.user as any).role === 'ADMIN') {
+      setEditingBreaking(article);
+      setIsBreakingEditOpen(true);
+    }
+  };
+
+
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--background)'}}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
+          {/* Flat loading indicator: no animation, borders, or rounding */}
+          <div className="mx-auto mb-4 h-3 w-24" style={{ backgroundColor: 'var(--muted)' }}></div>
           <p style={{color: 'var(--muted-foreground)'}}>Loading latest news...</p>
         </div>
       </div>
@@ -133,7 +195,7 @@ const NewsGrid: React.FC = () => {
           <p className="text-red-600 mb-4">{error}</p>
           <button 
             onClick={refreshNews}
-            className="bg-red-600 text-white px-4 py-2 hover:bg-red-700 transition-colors"
+            className="bg-red-600 text-white px-4 py-2 focus:outline-none"
           >
             Try Again
           </button>
@@ -149,7 +211,7 @@ const NewsGrid: React.FC = () => {
           <p className="text-gray-600 mb-4">No articles found.</p>
           <button 
             onClick={refreshNews}
-            className="bg-red-600 text-white px-4 py-2 hover:bg-red-700 transition-colors"
+            className="bg-red-600 text-white px-4 py-2 focus:outline-none"
           >
             Refresh
           </button>
@@ -162,12 +224,12 @@ const NewsGrid: React.FC = () => {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 p-4">
+          <div className="mb-6 p-4" style={{ backgroundColor: 'var(--muted)' }}>
             <div className="flex justify-between items-center">
               <p className="text-yellow-800">{error}</p>
               <button 
                 onClick={refreshNews}
-                className="bg-yellow-600 text-white px-3 py-1 text-sm hover:bg-yellow-700 transition-colors"
+                className="bg-yellow-600 text-white px-3 py-1 text-sm focus:outline-none"
               >
                 Refresh
               </button>
@@ -176,11 +238,11 @@ const NewsGrid: React.FC = () => {
         )}
 
 
-        <BreakingNewsSection articles={newsArticles} onReadMore={handleReadMore} />
-        <BusinessSection articles={newsArticles} onReadMore={handleReadMore} />
-        <TechnologySection articles={newsArticles} onReadMore={handleReadMore} />
-        <SportsSection articles={newsArticles} onReadMore={handleReadMore} />
-        <LifestyleSection articles={newsArticles} onReadMore={handleReadMore} />
+        <BreakingNewsSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onEditBreaking={handleEditBreaking} />
+        <BusinessSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
+        <TechnologySection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
+        <SportsSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
+        <LifestyleSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
         <FeaturedVideosSection videos={youtubeVideos} />
 
         {selectedArticle && (
@@ -188,6 +250,27 @@ const NewsGrid: React.FC = () => {
             article={selectedArticle}
             isOpen={isModalOpen}
             onClose={handleCloseModal}
+          />
+        )}
+
+        {editingArticle && session?.user && (session.user as any).role === 'ADMIN' && (
+          <EditArticleModal
+            isOpen={isEditOpen}
+            article={editingArticle}
+            onClose={() => { setIsEditOpen(false); setEditingArticle(null); }}
+            onSave={handleSaveEdit}
+            // @ts-ignore provide tags; modal will be updated to use these
+            availableTags={availableTags}
+          />
+        )}
+
+        {editingBreaking && session?.user && (session.user as any).role === 'ADMIN' && (
+          <BreakingNewsEditModal
+            isOpen={isBreakingEditOpen}
+            article={editingBreaking}
+            onClose={() => { setIsBreakingEditOpen(false); setEditingBreaking(null); }}
+            onSave={handleSaveEdit}
+            availableTags={availableTags}
           />
         )}
       </div>

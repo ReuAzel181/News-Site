@@ -55,3 +55,6 @@ prisma/migrations/
 # Temporary folders
 tmp/
 temp/
+
+# Admin credentials
+admin.credentials.json

@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SkipLink } from "@/components/ui/SkipLink";
 import { cn } from "@/utils/cn";
 import "./globals.css";
+import FaviconSwitcher from "@/components/layout/FaviconSwitcher";
 
 const libreCaslon = Libre_Caslon_Text({
   subsets: ["latin"],
@@ -62,7 +63,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)" />
+        <link rel="icon" href="/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)" />
+        <link id="favicon" rel="icon" href="/favicon-light.svg" type="image/svg+xml" />
+      </head>
       <body className={cn(libreCaslon.variable, 'font-serif antialiased')}>
+        <FaviconSwitcher />
         <SkipLink href="#main-content">Skip to main content</SkipLink>
         <SkipLink href="#navigation">Skip to navigation</SkipLink>
         <ThemeProvider

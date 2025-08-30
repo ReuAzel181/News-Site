@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
-import Image from 'next/image';
+import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/utils/cn';
 import { Header } from '@/components/layout/Header';
@@ -384,7 +384,7 @@ export default function SearchPage() {
                         <div className="md:w-48 flex-shrink-0">
                           <Link href={`/articles/${article.slug}`}>
                             <div className="relative w-full" style={{aspectRatio: '4/3'}}>
-                              <Image
+                              <ProgressiveImage
                                 src={article.imageUrl}
                                 alt={article.title}
                                 fill
