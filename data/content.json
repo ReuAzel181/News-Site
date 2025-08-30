@@ -48,5 +48,39 @@
       ]
     }
   },
-  "heroSlides": []
+  "heroSlides": [
+    {
+      "id": "1",
+      "title": "Philippines Achieves Record Renewable Energy Growth",
+      "excerpt": "The Department of Energy reports unprecedented 794.34 MW of renewable energy capacity added in 2024, marking a historic milestone that surpasses the combined achievements of the previous three years as the nation accelerates its ambitious clean energy transition.",
+      "imageUrl": "https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90",
+      "category": "Technology",
+      "author": "Department of Energy",
+      "publishedAt": "2024-01-15T10:00:00.000Z",
+      "views": 25420,
+      "slug": "philippines-achieves-record-renewable-energy-growth"
+    },
+    {
+      "id": "2",
+      "title": "UAE Giant Masdar Enters Philippine Market",
+      "excerpt": "International renewable energy leader Masdar has officially signed a comprehensive implementation agreement to develop an impressive 1 GW portfolio of solar, wind and advanced battery storage systems by 2030, directly supporting the Philippines ambitious Energy Transition Program goals.",
+      "imageUrl": "/uploads/1756569122229-nsx7fzv5re9.jpg",
+      "category": "Environment",
+      "author": "Energy News Asia",
+      "publishedAt": "2024-01-15T08:00:00.000Z",
+      "views": 18750,
+      "slug": "uae-giant-masdar-enters-philippine-market"
+    },
+    {
+      "id": "3",
+      "title": "Philippines Sets Bold Clean Energy Targets",
+      "excerpt": "The government has unveiled ambitious plans to dramatically increase solar power share to 5.6% and quadruple wind power capacity to 11.7% by 2030, positioning the Philippines to potentially achieve one of the cleanest and most sustainable energy grids in Southeast Asia.",
+      "imageUrl": "https://images.unsplash.com/photo-1548337138-e87d889cc369?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90",
+      "category": "Business",
+      "author": "Mylene Capongcol",
+      "publishedAt": "2024-01-15T06:00:00.000Z",
+      "views": 22150,
+      "slug": "philippines-sets-bold-clean-energy-targets"
+    }
+  ]
 }

@@ -21,6 +21,7 @@ export interface HeroSlide {
   publishedAt: string | Date;
   views: number;
   slug: string;
+  source?: string;
 }
 
 export interface ContentData {

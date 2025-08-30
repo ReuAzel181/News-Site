@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Clock, User, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, User, Globe } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/utils/cn';
 import { useSession } from 'next-auth/react';
@@ -58,6 +58,7 @@ type HeroSlide = {
   publishedAt: string | Date;
   views: number;
   slug: string;
+  source?: string;
 };
 
 const categoryColors = {
@@ -70,8 +71,8 @@ const categoryColors = {
 };
 
 export function HeroSection() {
-  const { data: session } = useSession();
-  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
+  const { data: session, status: sessionStatus } = useSession();
+  const isAdmin = sessionStatus === 'authenticated' && !!session?.user && (session.user as any).role === 'ADMIN';
 
   const [slides, setSlides] = useState<HeroSlide[]>(defaultSlides);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -80,6 +81,9 @@ export function HeroSection() {
   const [editMode, setEditMode] = useState(false);
   const [draftSlides, setDraftSlides] = useState<HeroSlide[]>([]);
   const [saving, setSaving] = useState(false);
+  const [localFiles, setLocalFiles] = useState<Record<string, File | undefined>>({});
+  // Track visibility of per-slide details to avoid cramped layouts
+  const [detailsOpen, setDetailsOpen] = useState<Record<string, boolean>>({});
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -129,20 +133,41 @@ export function HeroSection() {
     setDraftSlides([]);
   };
   const updateDraft = (index: number, field: keyof HeroSlide, value: any) => {
-    setDraftSlides(prev => prev.map((s, i) => i === index ? { ...s, [field]: value } : s));
+    setDraftSlides(prev => prev.map((s, i) => {
+      if (i !== index) return s;
+      const next = { ...s, [field]: value } as HeroSlide;
+      if (field === 'title') {
+        const slugify = (str: string) => str
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
+        next.slug = slugify(String(value || '')) || next.slug;
+      }
+      return next;
+    }));
   };
   const addSlide = () => {
     const id = Date.now().toString();
+    const slugify = (str: string) => str
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-');
+    const title = 'New Slide';
     setDraftSlides(prev => [...prev, {
       id,
-      title: 'New Slide',
+      title,
       excerpt: '',
       imageUrl: '',
       category: 'General',
       author: 'Unknown',
       publishedAt: new Date(),
       views: 0,
-      slug: `new-slide-${id}`
+      slug: `new-${slugify(title)}-${id}`,
+      source: ''
     }]);
   };
   const removeSlide = (index: number) => {
@@ -157,19 +182,100 @@ export function HeroSection() {
       return next;
     });
   };
+  // Simple client-side image editor: center-crop to 16:9 at HD resolution
+  const autoCropTo16x9 = async (slideIndex: number, slideId: string) => {
+    const file = localFiles[slideId];
+    if (!file) {
+      alert('Select an image file first to enable cropping.');
+      return;
+    }
+    try {
+      const img = document.createElement('img');
+      (img as any).decoding = 'async';
+      img.src = URL.createObjectURL(file);
+      await new Promise((resolve, reject) => {
+        img.onload = resolve as any;
+        img.onerror = reject as any;
+      });
+      const srcW = (img as HTMLImageElement).naturalWidth || (img as any).width;
+      const srcH = (img as HTMLImageElement).naturalHeight || (img as any).height;
+      const targetRatio = 16 / 9;
+      let cropW = srcW;
+      let cropH = Math.round(srcW / targetRatio);
+      if (cropH > srcH) {
+        cropH = srcH;
+        cropW = Math.round(srcH * targetRatio);
+      }
+      const sx = Math.max(0, Math.floor((srcW - cropW) / 2));
+      const sy = Math.max(0, Math.floor((srcH - cropH) / 2));
+  
+      const canvas = document.createElement('canvas');
+      // Export to HD 1920x1080 (maintains 16:9)
+      canvas.width = 1920;
+      canvas.height = 1080;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas not supported');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
+  
+      const blob: Blob = await new Promise((resolve, reject) => {
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Failed to export image'))), 'image/jpeg', 0.92);
+      });
+      const editedFile = new File([blob], 'hero-slide-16x9.jpg', { type: 'image/jpeg' });
+      const url = URL.createObjectURL(editedFile);
+      setLocalFiles(prev => ({ ...prev, [slideId]: editedFile }));
+      updateDraft(slideIndex, 'imageUrl', url);
+    } catch (e) {
+      console.error('Auto-crop failed', e);
+      alert('Cropping failed. Please try another image.');
+    }
+  };
   const saveSlides = async () => {
     setSaving(true);
     try {
-      const payload = { op: 'setHeroSlides', slides: draftSlides.map(s => ({ ...s, publishedAt: s.publishedAt instanceof Date ? s.publishedAt.toISOString() : s.publishedAt })) };
+      // Upload any locally selected images first
+      const uploadedSlides = await Promise.all(draftSlides.map(async (s) => {
+        const file = localFiles[s.id];
+        let imageUrl = s.imageUrl;
+        if (file) {
+          const formData = new FormData();
+          formData.append('file', file);
+          try {
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            if (res.ok) {
+              const json = await res.json();
+              if (json?.url) imageUrl = json.url as string;
+            }
+          } catch (e) {
+            console.error('Upload failed', e);
+          }
+        }
+        // Always ensure slug is generated from title silently
+        const slugify = (str: string) => str
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
+        return { ...s, imageUrl, slug: slugify(String(s.title || '')) } as HeroSlide;
+      }));
+
+      const payload = { op: 'setHeroSlides', slides: uploadedSlides.map(s => { const p = s.publishedAt; const normalized = p instanceof Date ? (isNaN(p.getTime()) ? '' : p.toISOString()) : p; return ({ ...s, publishedAt: normalized }); }) };
       const res = await fetch('/api/content', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error('Failed to save');
-      setSlides(draftSlides);
+      setSlides(uploadedSlides);
       setEditMode(false);
+      setLocalFiles({});
     } catch (e) {
       console.error(e);
     } finally {
       setSaving(false);
     }
+  };
+
+  const toggleDetails = (id: string) => {
+    setDetailsOpen((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const indicatorButtons = useMemo(() => slides.map((_, index) => (
@@ -214,7 +320,7 @@ export function HeroSection() {
       </div>
 
       {/* Admin controls */}
-      {isAdmin && (
+      {mounted && isAdmin && (
         <div className="absolute top-4 right-4 z-30 flex gap-2">
           {!editMode ? (
             <button type="button" onClick={startEdit} className="px-3 py-1 bg-black text-white" style={{ borderRadius: 0 }}>Edit Hero</button>
@@ -274,12 +380,14 @@ export function HeroSection() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="whitespace-nowrap">{mounted && currentArticle ? formatDistanceToNow(new Date(currentArticle.publishedAt), { addSuffix: true }) : 'Loading...'}</span>
+                        <span className="whitespace-nowrap">{mounted && currentArticle ? (() => { const d = new Date(currentArticle.publishedAt as any); return isNaN(d.getTime()) ? 'N/A' : formatDistanceToNow(d, { addSuffix: true }); })() : 'Loading...'}</span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="whitespace-nowrap">{mounted && currentArticle ? `${currentArticle.views.toLocaleString()} views` : 'Loading...'}</span>
-                      </div>
+                      {currentArticle?.source && (
+                        <div className="flex items-center space-x-1">
+                          <Globe className="w-3 h-3 sm:w-4 sm:h-4" />
+                          <span className="whitespace-nowrap">{currentArticle.source}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -326,11 +434,17 @@ export function HeroSection() {
       </div>
 
       {/* Edit panel */}
-      {isAdmin && editMode && (
+      {mounted && isAdmin && editMode && (
         <div className="absolute inset-x-0 bottom-0 z-30 bg-white/95 text-black p-4 overflow-y-auto max-h-[50vh]" style={{ backdropFilter: 'none' }}>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold">Edit Hero Slides</h3>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3">
+              {/* Order badges for quick visual ordering */}
+              <div className="hidden md:flex items-center gap-1">
+                {draftSlides.map((_, i) => (
+                  <div key={i} className="px-2 py-1 text-xs font-bold bg-gray-200 text-black" style={{ borderRadius: 0 }}>{i + 1}</div>
+                ))}
+              </div>
               <button type="button" onClick={addSlide} className="px-3 py-1 bg-gray-200" style={{ borderRadius: 0 }}>Add Slide</button>
             </div>
           </div>
@@ -338,44 +452,74 @@ export function HeroSection() {
             {draftSlides.map((s, idx) => (
               <div key={s.id} className="p-3" style={{ backgroundColor: 'var(--card)' }}>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold block">Title</label>
-                  <input value={s.title} onChange={(e) => updateDraft(idx, 'title', e.target.value)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
-                  <label className="text-xs font-semibold block">Excerpt</label>
-                  <textarea value={s.excerpt} onChange={(e) => updateDraft(idx, 'excerpt', e.target.value)} className="w-full min-h-[70px] px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
-                  <label className="text-xs font-semibold block">Image URL</label>
-                  <input value={s.imageUrl} onChange={(e) => updateDraft(idx, 'imageUrl', e.target.value)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs font-semibold block">Category</label>
-                      <input value={s.category} onChange={(e) => updateDraft(idx, 'category', e.target.value)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold block">Author</label>
-                      <input value={s.author} onChange={(e) => updateDraft(idx, 'author', e.target.value)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs font-semibold block">Published At</label>
-                      <input type="datetime-local" value={s.publishedAt ? new Date(s.publishedAt).toISOString().slice(0,16) : ''} onChange={(e) => updateDraft(idx, 'publishedAt', new Date(e.target.value))} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold block">Views</label>
-                      <input type="number" value={s.views} onChange={(e) => updateDraft(idx, 'views', Number(e.target.value) || 0)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
-                    </div>
-                  </div>
-                  <label className="text-xs font-semibold block">Slug</label>
-                  <input value={s.slug} onChange={(e) => updateDraft(idx, 'slug', e.target.value)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
-                  <div className="flex justify-between pt-2">
-                    <div className="flex gap-2">
-                      <button type="button" onClick={() => moveSlide(idx, -1)} className="px-2 py-1 bg-gray-200" style={{ borderRadius: 0 }}>Up</button>
-                      <button type="button" onClick={() => moveSlide(idx, 1)} className="px-2 py-1 bg-gray-200" style={{ borderRadius: 0 }}>Down</button>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-bold uppercase">Slide {idx + 1}</div>
                     <button type="button" onClick={() => removeSlide(idx)} className="px-2 py-1 bg-red-600 text-white" style={{ borderRadius: 0 }}>Remove</button>
-                  </div>
-                </div>
-              </div>
-            ))}
+                    </div>
+                    
+                    {/* Image preview */}
+                    <div className="relative w-full overflow-hidden bg-gray-200" style={{ aspectRatio: '16/9' }}>
+                      {s.imageUrl ? (
+                        <ProgressiveImage src={s.imageUrl} alt={s.title} fill className="object-contain" />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-xs select-none">No image</div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {/* Hidden file input controlled by label button */}
+                      <input
+                        id={`file-${s.id}`}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const url = URL.createObjectURL(file);
+                          setLocalFiles(prev => ({ ...prev, [s.id]: file }));
+                          updateDraft(idx, 'imageUrl', url);
+                        }}
+                        className="hidden"
+                      />
+                      <label htmlFor={`file-${s.id}`} className="px-2 py-1 bg-gray-200 text-black cursor-pointer select-none" style={{ borderRadius: 0 }}>Replace Image</label>
+                      <button type="button" onClick={() => toggleDetails(s.id)} className="px-2 py-1 bg-gray-200 text-black" style={{ borderRadius: 0 }}>
+                        {detailsOpen[s.id] ? 'Hide Details' : 'Show Details'}
+                      </button>
+                    </div>
+                    {detailsOpen[s.id] && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold block">Title</label>
+                        <input value={s.title} onChange={(e) => updateDraft(idx, 'title', e.target.value)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
+
+                        <label className="text-xs font-semibold block">Excerpt</label>
+                        <textarea value={s.excerpt} onChange={(e) => updateDraft(idx, 'excerpt', e.target.value)} className="w-full min-h-[72px] px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-xs font-semibold block">Category</label>
+                            <input value={s.category} onChange={(e) => updateDraft(idx, 'category', e.target.value)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold block">Author</label>
+                            <input value={s.author} onChange={(e) => updateDraft(idx, 'author', e.target.value)} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-xs font-semibold block">Published At</label>
+                            <input type="datetime-local" value={(() => { const dt = s.publishedAt ? new Date(s.publishedAt as any) : null; return dt && !isNaN(dt.getTime()) ? dt.toISOString().slice(0,16) : ''; })()} onChange={(e) => { const v = e.target.value; updateDraft(idx, 'publishedAt', v ? new Date(v) : ''); }} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-semibold block">Source</label>
+                            <input value={s.source || ''} onChange={(e) => updateDraft(idx, 'source', e.target.value)} placeholder="e.g., Reuters, BBC, Official" className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-gray-600">Recommended: 1920×1080. Upload to replace the current image.</div>
+                      </div>
+                    )}
+                 </div>
+               </div>
+             ))}
           </div>
         </div>
       )}
