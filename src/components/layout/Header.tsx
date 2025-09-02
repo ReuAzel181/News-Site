@@ -302,3 +302,5 @@ export function Header() {
     </motion.header>
   );
 }
+
+Header.displayName = 'Header';

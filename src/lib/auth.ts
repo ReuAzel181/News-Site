@@ -29,8 +29,8 @@ export const authOptions: NextAuthOptions = {
               email: 'admin@local',
               name: 'Admin',
               role: 'ADMIN',
-              image: null as any
-            } as any;
+              image: null
+            };
           }
           return null;
         } catch (e) {
@@ -45,18 +45,15 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.role = (user as any).role || 'USER';
+      if (user && 'role' in user) {
+        token.role = user.role || 'USER';
       }
-      return token as any;
+      return token;
     },
     async session({ session, token }) {
-      if (token) {
-        (session as any).user = {
-          ...(session.user || {}),
-          id: token.sub as string,
-          role: (token as any).role as string
-        };
+      if (token && session.user) {
+        session.user.id = token.sub as string;
+        session.user.role = token.role as string;
       }
       return session;
     }

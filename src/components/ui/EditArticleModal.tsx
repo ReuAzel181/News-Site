@@ -36,7 +36,7 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
     };
   }, [localImageUrl]);
 
-  const handleChange = (field: keyof Article, value: any) => {
+  const handleChange = (field: keyof Article, value: Article[keyof Article]) => {
     setDraft(prev => ({ ...prev, [field]: value }));
   };
 

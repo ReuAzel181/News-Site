@@ -129,7 +129,7 @@ interface SportsSectionProps {
 
 export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionProps) {
   const { data: session } = useSession();
-  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
+  const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   const sportsNews = articles
     .filter(article => article.category === 'Sports')
     .filter((article, index, self) => 

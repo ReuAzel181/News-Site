@@ -29,7 +29,7 @@ export default function BreakingNewsEditModal({
     setLocalImageUrl(null);
   }, [article]);
 
-  const handleChange = (field: keyof Article, value: any) => {
+  const handleChange = (field: keyof Article, value: Article[keyof Article]) => {
     setDraft((prev) => ({ ...prev, [field]: value }));
   };
 

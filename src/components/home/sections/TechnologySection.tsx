@@ -1,6 +1,6 @@
 'use client';
 
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 import { Article } from '../types';
@@ -124,7 +124,7 @@ interface TechnologySectionProps {
 
 export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySectionProps) {
   const { data: session } = useSession();
-  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
+  const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   console.log('TechnologySection received articles:', articles.length);
   console.log('Technology articles before filtering:', articles.filter(a => a.category === 'Technology'));
   

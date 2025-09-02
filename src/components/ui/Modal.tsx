@@ -203,6 +203,8 @@ export function Modal({
   );
 }
 
+Modal.displayName = 'Modal';
+
 // Enhanced hook for modal state management
 export function useModal(initialState = false) {
   const [isOpen, setIsOpen] = useState(initialState);

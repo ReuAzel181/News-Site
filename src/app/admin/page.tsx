@@ -19,6 +19,17 @@ import { cn } from '@/utils/cn';
 // import { fetchMixedNews } from '@/services/newsService';
 // import { Article } from '@/components/home/types';
 
+interface Article {
+  id: string;
+  title: string;
+  category: string;
+  author: string;
+  status: 'published' | 'draft' | 'archived';
+  publishedAt: Date | null;
+  views: number;
+  featured: boolean;
+}
+
 // Mock data for articles (using real-like data structure)
 const mockArticles = [
   {
@@ -80,7 +91,7 @@ const statusColors = {
 };
 
 // Calculate real statistics from articles data
-const calculateStats = (articles: any[]) => {
+const calculateStats = (articles: Article[]) => {
   const totalArticles = articles.length;
   const publishedArticles = articles.filter(article => article.status === 'published');
   const totalViews = articles.reduce((sum, article) => sum + (article.views || 0), 0);

@@ -32,7 +32,7 @@ export function EditVideoModal({ isOpen, video, onClose, onSave }: EditVideoModa
     setErrors({});
   }, [video]);
 
-  const handleChange = (field: keyof Video, value: any) => {
+  const handleChange = (field: keyof Video, value: Video[keyof Video]) => {
     setDraft(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {

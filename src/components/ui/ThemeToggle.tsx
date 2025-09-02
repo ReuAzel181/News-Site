@@ -199,3 +199,5 @@ export function ThemeToggle({
 
   return null;
 }
+
+ThemeToggle.displayName = 'ThemeToggle';

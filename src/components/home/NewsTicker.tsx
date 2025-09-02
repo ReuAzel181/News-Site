@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 
 export function NewsTicker() {
   const { data: session } = useSession();
-  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
+  const isAdmin = !!session?.user && session.user.role === 'ADMIN';
 
   const [items, setItems] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);

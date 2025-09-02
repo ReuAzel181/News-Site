@@ -123,7 +123,7 @@ interface BreakingNewsSectionProps {
 
 export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaking }: BreakingNewsSectionProps) {
   const { data: session } = useSession();
-  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
+  const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   
   // Get featured articles first, then fill with recent articles from priority categories
   const featuredArticles = articles.filter(article => article.featured);

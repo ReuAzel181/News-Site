@@ -470,3 +470,5 @@ export function HeroSection() {
     </section>
   );
 }
+
+HeroSection.displayName = 'HeroSection';

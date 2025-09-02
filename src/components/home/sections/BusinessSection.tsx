@@ -145,7 +145,7 @@ interface BusinessSectionProps {
 
 export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectionProps) {
   const { data: session } = useSession();
-  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
+  const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   console.log('BusinessSection received articles:', articles.length);
   console.log('Business articles before filtering:', articles.filter(a => a.category === 'Business' || a.category === 'Finance'));
   

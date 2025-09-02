@@ -124,7 +124,7 @@ interface LifestyleSectionProps {
 
 export function LifestyleSection({ articles, onReadMore, onEdit }: LifestyleSectionProps) {
   const { data: session } = useSession();
-  const isAdmin = !!session?.user && (session.user as any).role === 'ADMIN';
+  const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   const lifestyleNews = articles
     .filter(article => 
       article.category === 'Lifestyle' || article.category === 'Entertainment'
