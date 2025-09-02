@@ -13,6 +13,7 @@ import {
   Settings
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { SignInModal } from '@/components/ui/SignInModal';
 import { cn } from '@/utils/cn';
 import { DesktopNavigation, MobileNavigation } from './navigation';
 
@@ -20,6 +21,7 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('#');
+  const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
 
   const { data: session } = useSession();
 
@@ -112,7 +114,7 @@ export function Header() {
           >
             <Link href="/" className="flex items-center">
               <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-                BalitaPH
+                Veritas Bulletin
               </span>
             </Link>
           </motion.div>
@@ -174,12 +176,12 @@ export function Header() {
                 </div>
               </div>
             ) : (
-              <Link
-                href="/auth/signin"
+              <button
+                onClick={() => setIsSignInModalOpen(true)}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
               >
                 Sign In
-              </Link>
+              </button>
             )}
 
             {/* Mobile menu button */}
@@ -224,10 +226,20 @@ export function Header() {
            isOpen={isMenuOpen}
            onNavigationClick={handleSmoothScroll}
            activeSection={activeSection}
+           onSignInClick={() => setIsSignInModalOpen(true)}
          />
       </nav>
-
-
+      
+      {/* Sign In Modal */}
+      <SignInModal 
+        isOpen={isSignInModalOpen}
+        onClose={() => setIsSignInModalOpen(false)}
+        onSuccess={() => {
+          setIsSignInModalOpen(false);
+          // Optionally show a success toast or refresh the page
+          window.location.reload();
+        }}
+      />
     </motion.header>
   );
 }

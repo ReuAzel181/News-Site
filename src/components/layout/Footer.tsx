@@ -15,7 +15,7 @@ const Footer = () => {
                   <Newspaper className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold">BalitaPH</h3>
+                  <h3 className="text-2xl font-bold">Veritas Bulletin</h3>
                   <p className="text-sm text-slate-400">Trusted News Source</p>
                 </div>
               </div>
@@ -25,7 +25,7 @@ const Footer = () => {
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Mail className="h-5 w-5 text-blue-400" />
-                  <span className="text-base text-slate-300">contact@balitaph.com</span>
+                  <span className="text-base text-slate-300">contact@veritas-bulletin.com</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Phone className="h-5 w-5 text-blue-400" />
@@ -157,7 +157,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
             <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8">
               <p className="text-xs text-slate-400">
-                © 2024 BalitaPH. All rights reserved.
+                © 2024 Veritas Bulletin. All rights reserved.
               </p>
               <div className="flex items-center space-x-6">
                 <a href="#" className="text-xs text-slate-400 hover:text-white transition-colors duration-200 flex items-center group">

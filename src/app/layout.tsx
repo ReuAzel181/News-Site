@@ -15,14 +15,14 @@ const libreCaslon = Libre_Caslon_Text({
 
 export const metadata: Metadata = {
   title: {
-    default: "BalitaPH - Your Trusted Source for News",
-    template: "%s | BalitaPH"
+    default: "Veritas Bulletin - Your Trusted Source for News",
+    template: "%s | Veritas Bulletin"
   },
   description: "Stay informed with the latest news, breaking stories, and in-depth analysis from around the world. Your trusted source for reliable journalism.",
   keywords: ["news", "breaking news", "world news", "politics", "technology", "sports", "entertainment"],
-  authors: [{ name: "BalitaPH Team" }],
-  creator: "BalitaPH",
-  publisher: "BalitaPH",
+  authors: [{ name: "Veritas Bulletin Team" }],
+  creator: "Veritas Bulletin",
+  publisher: "Veritas Bulletin",
   formatDetection: {
     email: false,
     address: false,
@@ -33,15 +33,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName: "BalitaPH",
-    title: "BalitaPH - Your Trusted Source for News",
+    siteName: "Veritas Bulletin",
+    title: "Veritas Bulletin - Your Trusted Source for News",
     description: "Stay informed with the latest news, breaking stories, and in-depth analysis from around the world.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BalitaPH - Your Trusted Source for News",
+    title: "Veritas Bulletin - Your Trusted Source for News",
     description: "Stay informed with the latest news, breaking stories, and in-depth analysis from around the world.",
-    creator: "@balitaph",
+    creator: "@Veritas-Bulletin",
   },
   robots: {
     index: true,

@@ -75,10 +75,10 @@ type SettingsState = {
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('general');
   const [settings, setSettings] = useState<SettingsState>({
-    siteName: 'BalitaPH',
+    siteName: 'Veritas Bulletin',
     siteDescription: 'Your trusted source for Filipino news and insights',
-    siteUrl: 'https://balitaph.com',
-    adminEmail: 'admin@balitaph.com',
+    siteUrl: 'https://veritas-bulletin.com',
+    adminEmail: 'admin@veritas-bulletin.com',
     articlesPerPage: 12,
     enableComments: true,
     moderateComments: true,

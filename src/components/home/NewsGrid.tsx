@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ArticleModal } from '@/components/ui/ArticleModal';
 import EditArticleModal from '@/components/ui/EditArticleModal';
 import BreakingNewsEditModal from '@/components/ui/BreakingNewsEditModal';
+import { EditVideoModal } from '@/components/ui/EditVideoModal';
 import { useSession } from 'next-auth/react';
 import {
   BreakingNewsSection,
@@ -75,6 +76,9 @@ const NewsGrid: React.FC = () => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [editingBreaking, setEditingBreaking] = useState<Article | null>(null);
   const [isBreakingEditOpen, setIsBreakingEditOpen] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<any | null>(null);
+  const [isVideoEditOpen, setIsVideoEditOpen] = useState(false);
+  const [videos, setVideos] = useState(youtubeVideos);
 
   // Fetch news data on component mount
   useEffect(() => {
@@ -174,6 +178,39 @@ const NewsGrid: React.FC = () => {
     }
   };
 
+  const handleEditVideo = (video: any) => {
+    if (session?.user && (session.user as any).role === 'ADMIN') {
+      setEditingVideo(video);
+      setIsVideoEditOpen(true);
+    }
+  };
+
+  const handleAddVideo = (newVideo: any) => {
+    if (session?.user && (session.user as any).role === 'ADMIN') {
+      // Add the new video to the videos state immediately for visual feedback
+      setVideos(prev => [...prev, newVideo]);
+      // Then open the edit modal to allow customization
+      setEditingVideo(newVideo);
+      setIsVideoEditOpen(true);
+    }
+  };
+
+  const handleSaveVideo = (updatedVideo: any) => {
+    setVideos(prev => prev.map(v => v.id === updatedVideo.id ? updatedVideo : v));
+    setIsVideoEditOpen(false);
+    setEditingVideo(null);
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+    if (session?.user && (session.user as any).role === 'ADMIN') {
+      setVideos(prev => prev.filter(v => v.id !== videoId));
+      if (editingVideo && editingVideo.id === videoId) {
+        setIsVideoEditOpen(false);
+        setEditingVideo(null);
+      }
+    }
+  };
+
 
 
   if (loading) {
@@ -243,7 +280,13 @@ const NewsGrid: React.FC = () => {
         <TechnologySection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
         <SportsSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
         <LifestyleSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
-        <FeaturedVideosSection videos={youtubeVideos} />
+        <FeaturedVideosSection 
+          videos={videos} 
+          isAdmin={session?.user && (session.user as any).role === 'ADMIN'}
+          onEdit={handleEditVideo}
+          onAdd={handleAddVideo}
+          onDelete={handleDeleteVideo}
+        />
 
         {selectedArticle && (
           <ArticleModal
@@ -271,6 +314,15 @@ const NewsGrid: React.FC = () => {
             onClose={() => { setIsBreakingEditOpen(false); setEditingBreaking(null); }}
             onSave={handleSaveEdit}
             availableTags={availableTags}
+          />
+        )}
+
+        {editingVideo && session?.user && (session.user as any).role === 'ADMIN' && (
+          <EditVideoModal
+            isOpen={isVideoEditOpen}
+            video={editingVideo}
+            onClose={() => { setIsVideoEditOpen(false); setEditingVideo(null); }}
+            onSave={handleSaveVideo}
           />
         )}
       </div>

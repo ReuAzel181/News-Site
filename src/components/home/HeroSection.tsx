@@ -117,11 +117,12 @@ export function HeroSection() {
     return () => clearInterval(interval);
   }, [isAutoPlaying, editMode, slides.length]);
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  const goToSlide = (index: number) => setCurrentSlide(index);
+  const currentSlides = editMode ? draftSlides : slides;
+  const currentArticle = currentSlides[currentSlide];
 
-  const currentArticle = slides[currentSlide];
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % currentSlides.length);
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + currentSlides.length) % currentSlides.length);
+  const goToSlide = (index: number) => setCurrentSlide(index);
 
   const startEdit = () => {
     setDraftSlides(slides.map(s => ({ ...s })));
@@ -278,7 +279,7 @@ export function HeroSection() {
     setDetailsOpen((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const indicatorButtons = useMemo(() => slides.map((_, index) => (
+  const indicatorButtons = useMemo(() => currentSlides.map((_, index) => (
     <button
       key={index}
       onClick={() => goToSlide(index)}
@@ -288,7 +289,7 @@ export function HeroSection() {
       aria-label={`Go to slide ${index + 1}`}
       style={{ borderRadius: 0 }}
     />
-  )), [slides, currentSlide]);
+  )), [currentSlides, currentSlide]);
 
   return (
     <section className="relative h-[85vh] min-h-[650px] overflow-hidden mb-4 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20">

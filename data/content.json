@@ -1,12 +1,22 @@
 {
   "breakingNews": [
-    "Supreme Court declares Articles of Impeachment vs VP Sara Duterte as unconstitutional",
     "President Marcos addresses the nation on economic recovery plans",
     "Iglesia ni Cristo holds National Rally for Peace with 1.5 million attendees",
+    "Supreme Court declares Articles of Impeachment vs VP Sara Duterte as unconstitutional",
     "OFW remittances reach all-time high this quarter",
     "Renewable energy projects accelerate nationwide development",
     "Filipino scientists develop breakthrough cancer treatment",
-    "Gilas Pilipinas prepares for FIBA World Cup qualifiers"
+    "Gilas Pilipinas prepares for FIBA World Cup qualifiers",
+    "BARMM government launches massive infrastructure development program",
+    "Philippine Stock Exchange hits record high amid foreign investor confidence",
+    "Department of Health reports significant decline in COVID-19 cases nationwide",
+    "DOST unveils new satellite technology for disaster monitoring",
+    "Bangko Sentral ng Pilipinas maintains key interest rates at current levels",
+    "Philippine Navy receives new frigates to strengthen maritime security",
+    "DENR announces expanded marine protected areas in Palawan",
+    "DepEd implements new digital learning platforms in public schools",
+    "DOTr fast-tracks completion of Metro Manila subway project",
+    "Philippine delegation secures major trade deals at ASEAN summit"
   ],
   "availableTags": [
     "Politics",
@@ -40,7 +50,7 @@
       "title": "Tech Giants Report Record Quarterly Earnings",
       "excerpt": "Leading technology companies exceed analyst expectations with strong revenue growth driven by cloud services and AI investments. Microsoft reported 15% year-over-year growth, while Google's parent company Alphabet saw 12% increase in advertising revenue. Amazon's AWS division continues to dominate cloud infrastructure with 32% market share, contributing significantly to overall profitability.",
       "content": "The latest earnings season has delivered impressive results for major technology corporations, with cloud computing and artificial intelligence driving unprecedented growth. Microsoft's Azure platform grew 29% year-over-year, while its productivity suite benefited from hybrid work trends. Google's search advertising revenue rebounded strongly, and YouTube's creator economy generated $8.1 billion in revenue. These results demonstrate the resilience of tech companies and their ability to adapt to changing market conditions while investing heavily in future technologies.",
-      "imageUrl": "blob:http://localhost:3000/c74bca5e-394e-434c-a047-b0727eeef3fd",
+      "imageUrl": "blob:http://localhost:3000/2016dedc-dffb-464a-afbe-d651e0eb63f6",
       "tags": [
         "business",
         "technology",
@@ -53,7 +63,7 @@
       "id": "1",
       "title": "Philippines Achieves Record Renewable Energy Growth",
       "excerpt": "The Department of Energy reports unprecedented 794.34 MW of renewable energy capacity added in 2024, marking a historic milestone that surpasses the combined achievements of the previous three years as the nation accelerates its ambitious clean energy transition.",
-      "imageUrl": "https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90",
+      "imageUrl": "/uploads/1756798499145-58wzbg4300h.jpg",
       "category": "Technology",
       "author": "Department of Energy",
       "publishedAt": "2024-01-15T10:00:00.000Z",
