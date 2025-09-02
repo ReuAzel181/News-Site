@@ -23,13 +23,13 @@ export function NavigationItem({
   className 
 }: NavigationItemProps) {
   const baseClasses = {
-    desktop: "px-2 py-3 text-xs font-normal text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 ease-in-out focus:outline-none cursor-pointer relative",
-    mobile: "flex items-center space-x-3 px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 ease-in-out cursor-pointer relative"
+    desktop: "px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 ease-in-out focus:outline-none cursor-pointer relative whitespace-nowrap",
+    mobile: "flex items-center space-x-3 px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 ease-in-out cursor-pointer relative"
   };
 
   const activeClasses = {
-    desktop: "text-blue-600 dark:text-blue-400 after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-blue-600 dark:after:bg-blue-400 after:rounded-full",
-    mobile: "text-blue-600 dark:text-blue-400 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-blue-600 dark:before:bg-blue-400 before:rounded-r-full"
+    desktop: "text-blue-600 dark:text-blue-400 font-semibold after:content-[''] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-1 after:bg-blue-600 dark:after:bg-blue-400 after:transition-all after:duration-300 after:ease-in-out",
+    mobile: "text-blue-600 dark:text-blue-400 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-blue-600 dark:before:bg-blue-400 before:transition-all before:duration-300 before:ease-in-out"
   };
 
   if (variant === 'desktop') {

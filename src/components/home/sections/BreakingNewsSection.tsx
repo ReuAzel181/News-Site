@@ -288,7 +288,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
 
         {isAdmin && (
           <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mb-8">
-            <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-gray-50 border-y border-gray-200 shadow-sm">
+            <div className="px-6 py-4" style={{backgroundColor: 'var(--card)'}}>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold">Layout Editor</span>
                 {!editingLayout ? (
@@ -540,12 +540,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
             </button>
           </div>
         )}
-        <div className={cn(
-          'space-y-3 p-6 h-full flex flex-col',
-          isFeatured && 'bg-blue-50',
-          isCompact && 'bg-gray-50',
-          !itemLayout && 'bg-white'
-        )} style={{backgroundColor: itemLayout ? undefined : 'var(--card)', borderRadius: '0px', boxShadow: 'none', border: 'none', outline: 'none'}}>
+        <div className="space-y-3 p-6 h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
           <div className={cn(
             'relative w-full rounded-none',
             isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'
@@ -575,7 +570,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
               )}
             </div>
             <div className="flex items-center justify-between text-xs text-gray-500">
-              <span className="bg-blue-100 text-blue-800 px-2 py-1 text-xs font-medium" style={{borderRadius: '0px'}}>
+              <span className="px-2 py-1 text-xs font-medium" style={{backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)'}}>
                 {article.category}
               </span>
               <time>{formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}</time>

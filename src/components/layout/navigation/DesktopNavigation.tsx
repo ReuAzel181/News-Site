@@ -12,7 +12,7 @@ interface DesktopNavigationProps {
 export function DesktopNavigation({ onNavigationClick, activeSection }: DesktopNavigationProps) {
   return (
     <div className="hidden md:block">
-      <div className="ml-10 flex items-baseline space-x-8" role="menubar">
+      <div className="ml-6 flex items-center space-x-0.5" role="menubar">
         {navigation.map((item, index) => (
           <NavigationItem
             key={item.name}

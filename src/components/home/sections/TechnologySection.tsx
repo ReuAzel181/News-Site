@@ -250,12 +250,7 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
             </button>
           </div>
         )}
-        <div className={cn(
-          'space-y-3 p-6 h-full flex flex-col',
-          isFeatured && 'bg-blue-50',
-          isCompact && 'bg-gray-50',
-          !itemLayout && 'bg-white'
-        )} style={{backgroundColor: itemLayout ? undefined : 'var(--card)', borderRadius: '0px', boxShadow: 'none', border: 'none', outline: 'none'}}>
+        <div className="space-y-3 p-6 h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
           <div className={cn(
             'relative w-full',
             isFeatured ? 'aspect-[16/10]' : isCompact ? 'aspect-[4/3]' : 'aspect-[4/3]'
@@ -325,7 +320,7 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
 
       {isAdmin && (
         <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mb-8">
-          <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-gray-50 border-y border-gray-200 shadow-sm">
+          <div className="px-6 py-4" style={{backgroundColor: 'var(--card)'}}>
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold">Layout Editor</span>
               {!editingLayout ? (

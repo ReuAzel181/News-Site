@@ -279,7 +279,7 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
 
   return (
     <div className="mt-12">
-      <div id="business" className="py-4">
+      <div id="business-finance" className="py-4">
         <div className="px-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center">
@@ -306,7 +306,7 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
 
       {isAdmin && (
         <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mb-8">
-          <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-gray-50 border-y border-gray-200 shadow-sm">
+          <div className="px-6 py-4" style={{backgroundColor: 'var(--card)'}}>
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold">Layout Editor</span>
               {!editingLayout ? (
@@ -595,9 +595,7 @@ const GridItem = memo(function GridItem({ article, onReadMore, onEdit, isAdmin, 
         ) : (
           itemLayout?.priority === 'featured' ? 'p-3' : itemLayout?.priority === 'compact' ? 'p-1.5' : 'p-2'
         ),
-        // Template-specific background variations
-        templateName === 'Editorial Focus' && itemLayout?.priority === 'featured' ? 'bg-gradient-to-b from-white to-gray-50' : ''
-      )} style={{backgroundColor: templateName === 'Editorial Focus' && itemLayout?.priority === 'featured' ? undefined : 'var(--card)'}}>
+      )} style={{backgroundColor: 'var(--card)'}}>
         {/* Removed all borders and dividers for flat design */}
         <div className={cn(
           'relative w-full rounded-none',

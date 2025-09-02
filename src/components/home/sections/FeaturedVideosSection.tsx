@@ -115,6 +115,8 @@ interface Video {
   channel: string;
   views: string;
   publishedAt: Date;
+  thumbnail: string;
+  duration: string;
 }
 
 interface FeaturedVideosSectionProps {
@@ -284,7 +286,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
   });
 
   return (
-    <section className="mt-12 mb-16">
+    <section className="mt-12 mb-16" id="featured-videos">
       <div className="max-w-7xl mx-auto">
         <div className="py-4">
           <div className="px-6">
@@ -306,7 +308,9 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
                       description: 'Add your video description here. Click the Edit button to customize this video with your content.',
                       channel: 'Your Channel Name',
                       views: '0',
-                      publishedAt: new Date()
+                      publishedAt: new Date(),
+                      thumbnail: 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+                      duration: '3:32'
                     };
                     
                     // Call the onAdd handler if provided for immediate visual feedback
@@ -512,12 +516,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
             </button>
           </div>
         )}
-        <div className={cn(
-          'space-y-3 p-6 h-full flex flex-col',
-          isFeatured && 'bg-blue-50',
-          isCompact && 'bg-gray-50',
-          !itemLayout && 'bg-white'
-        )} style={{backgroundColor: itemLayout ? undefined : 'var(--card)', borderRadius: '0px', boxShadow: 'none', border: 'none', outline: 'none'}}>
+        <div className="space-y-3 p-6 h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
           <div className={cn(
             'relative w-full bg-gray-200',
             isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'

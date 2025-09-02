@@ -174,7 +174,7 @@ export default function ArticlesPage() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Article
@@ -183,7 +183,7 @@ export default function ArticlesPage() {
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+      <div className="bg-white dark:bg-gray-800 mb-6">
         <div className="p-6">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
@@ -195,7 +195,7 @@ export default function ArticlesPage() {
                   placeholder="Search articles, authors, or content..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function ArticlesPage() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="all">All Categories</option>
                 <option value="Technology">Technology</option>
@@ -217,7 +217,7 @@ export default function ArticlesPage() {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="all">All Status</option>
                 <option value="published">Published</option>
@@ -235,7 +235,7 @@ export default function ArticlesPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6"
+          className="bg-blue-50 dark:bg-blue-900/20 p-4 mb-6"
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-blue-900 dark:text-blue-300">
@@ -244,19 +244,19 @@ export default function ArticlesPage() {
             <div className="flex space-x-2">
               <button
                 onClick={() => handleBulkAction('publish')}
-                className="px-3 py-1 text-sm bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-md hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                className="px-3 py-1 text-sm bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
               >
                 Publish
               </button>
               <button
                 onClick={() => handleBulkAction('draft')}
-                className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 rounded-md hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors"
+                className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors"
               >
                 Draft
               </button>
               <button
                 onClick={() => handleBulkAction('delete')}
-                className="px-3 py-1 text-sm bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                className="px-3 py-1 text-sm bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
               >
                 Delete
               </button>
@@ -266,7 +266,7 @@ export default function ArticlesPage() {
       )}
 
       {/* Articles Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -284,7 +284,7 @@ export default function ArticlesPage() {
                     type="checkbox"
                     checked={selectedArticles.length === filteredArticles.length && filteredArticles.length > 0}
                     onChange={selectAllArticles}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="text-blue-600"
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -326,7 +326,7 @@ export default function ArticlesPage() {
                         type="checkbox"
                         checked={selectedArticles.includes(article.id)}
                         onChange={() => toggleArticleSelection(article.id)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="text-blue-600"
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -347,7 +347,7 @@ export default function ArticlesPage() {
                             {article.tags.slice(0, 3).map((tag) => (
                               <span
                                 key={tag}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                                className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
                               >
                                 {tag}
                               </span>
@@ -362,14 +362,14 @@ export default function ArticlesPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                         {article.category}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8">
-                          <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                          <div className="h-8 w-8 bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
                             <User className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                           </div>
                         </div>
@@ -382,7 +382,7 @@ export default function ArticlesPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={cn(
-                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                        'inline-flex items-center px-2 py-0.5 text-xs font-medium',
                         statusColors[article.status as keyof typeof statusColors]
                       )}>
                         <StatusIcon className="w-3 h-3 mr-1" />

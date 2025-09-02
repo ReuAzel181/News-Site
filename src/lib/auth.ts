@@ -27,7 +27,7 @@ export const authOptions: NextAuthOptions = {
             return {
               id: 'admin-file-user',
               email: 'admin@local',
-              name: 'Administrator',
+              name: 'Admin',
               role: 'ADMIN',
               image: null as any
             } as any;

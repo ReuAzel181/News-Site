@@ -11,6 +11,8 @@ interface Video {
   channel: string;
   views: string;
   publishedAt: Date;
+  thumbnail: string;
+  duration: string;
 }
 
 interface EditVideoModalProps {

@@ -6,6 +6,7 @@ import EditArticleModal from '@/components/ui/EditArticleModal';
 import BreakingNewsEditModal from '@/components/ui/BreakingNewsEditModal';
 import { EditVideoModal } from '@/components/ui/EditVideoModal';
 import { useSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 import {
   BreakingNewsSection,
   BusinessSection,
@@ -21,6 +22,18 @@ interface ContentPayload {
   breakingNews: string[];
   availableTags: string[];
   articleOverrides: Record<string, Partial<Article>>;
+}
+
+interface Video {
+  id: string;
+  title: string;
+  description: string;
+  videoId: string;
+  thumbnail: string;
+  duration: string;
+  views: string;
+  publishedAt: Date;
+  channel: string;
 }
 
 // Note: Currently using mock news data via getMockNewsData() for debugging.
@@ -76,7 +89,7 @@ const NewsGrid: React.FC = () => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [editingBreaking, setEditingBreaking] = useState<Article | null>(null);
   const [isBreakingEditOpen, setIsBreakingEditOpen] = useState(false);
-  const [editingVideo, setEditingVideo] = useState<any | null>(null);
+  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const [isVideoEditOpen, setIsVideoEditOpen] = useState(false);
   const [videos, setVideos] = useState(youtubeVideos);
 
@@ -165,28 +178,28 @@ const NewsGrid: React.FC = () => {
   };
 
   const handleEdit = (article: Article) => {
-    if (session?.user && (session.user as any).role === 'ADMIN') {
+    if (session?.user && (session as Session).user?.role === 'ADMIN') {
       setEditingArticle(article);
       setIsEditOpen(true);
     }
   };
 
   const handleEditBreaking = (article: Article) => {
-    if (session?.user && (session.user as any).role === 'ADMIN') {
+    if (session?.user && (session as Session).user?.role === 'ADMIN') {
       setEditingBreaking(article);
       setIsBreakingEditOpen(true);
     }
   };
 
-  const handleEditVideo = (video: any) => {
-    if (session?.user && (session.user as any).role === 'ADMIN') {
+  const handleEditVideo = (video: Video) => {
+    if (session?.user && (session as Session).user?.role === 'ADMIN') {
       setEditingVideo(video);
       setIsVideoEditOpen(true);
     }
   };
 
-  const handleAddVideo = (newVideo: any) => {
-    if (session?.user && (session.user as any).role === 'ADMIN') {
+  const handleAddVideo = (newVideo: Video) => {
+    if (session?.user && (session as Session).user?.role === 'ADMIN') {
       // Add the new video to the videos state immediately for visual feedback
       setVideos(prev => [...prev, newVideo]);
       // Then open the edit modal to allow customization
@@ -195,14 +208,14 @@ const NewsGrid: React.FC = () => {
     }
   };
 
-  const handleSaveVideo = (updatedVideo: any) => {
+  const handleSaveVideo = (updatedVideo: Video) => {
     setVideos(prev => prev.map(v => v.id === updatedVideo.id ? updatedVideo : v));
     setIsVideoEditOpen(false);
     setEditingVideo(null);
   };
 
   const handleDeleteVideo = (videoId: string) => {
-    if (session?.user && (session.user as any).role === 'ADMIN') {
+    if (session?.user && (session as Session).user?.role === 'ADMIN') {
       setVideos(prev => prev.filter(v => v.id !== videoId));
       if (editingVideo && editingVideo.id === videoId) {
         setIsVideoEditOpen(false);
@@ -282,7 +295,7 @@ const NewsGrid: React.FC = () => {
         <LifestyleSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
         <FeaturedVideosSection 
           videos={videos} 
-          isAdmin={session?.user && (session.user as any).role === 'ADMIN'}
+          isAdmin={session?.user && (session as Session).user?.role === 'ADMIN'}
           onEdit={handleEditVideo}
           onAdd={handleAddVideo}
           onDelete={handleDeleteVideo}
@@ -296,18 +309,17 @@ const NewsGrid: React.FC = () => {
           />
         )}
 
-        {editingArticle && session?.user && (session.user as any).role === 'ADMIN' && (
+        {editingArticle && session?.user && (session as Session).user?.role === 'ADMIN' && (
           <EditArticleModal
             isOpen={isEditOpen}
             article={editingArticle}
             onClose={() => { setIsEditOpen(false); setEditingArticle(null); }}
             onSave={handleSaveEdit}
-            // @ts-ignore provide tags; modal will be updated to use these
             availableTags={availableTags}
           />
         )}
 
-        {editingBreaking && session?.user && (session.user as any).role === 'ADMIN' && (
+        {editingBreaking && session?.user && (session as Session).user?.role === 'ADMIN' && (
           <BreakingNewsEditModal
             isOpen={isBreakingEditOpen}
             article={editingBreaking}
@@ -317,12 +329,12 @@ const NewsGrid: React.FC = () => {
           />
         )}
 
-        {editingVideo && session?.user && (session.user as any).role === 'ADMIN' && (
+        {editingVideo && session?.user && (session as Session).user?.role === 'ADMIN' && (
           <EditVideoModal
             isOpen={isVideoEditOpen}
             video={editingVideo}
             onClose={() => { setIsVideoEditOpen(false); setEditingVideo(null); }}
-            onSave={handleSaveVideo}
+            onSave={(video: Video) => handleSaveVideo(video)}
           />
         )}
       </div>

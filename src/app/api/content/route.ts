@@ -1,6 +1,7 @@
 export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { readContent, writeContent, updateArticleOverride, updateBreakingNews, setHeroSlides } from '@/lib/contentStore';
 
@@ -11,7 +12,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || (session as any).user?.role !== 'ADMIN') {
+  if (!session || (session as Session).user?.role !== 'ADMIN') {
     return new NextResponse('Unauthorized', { status: 401 });
   }
   const body = await req.json().catch(() => ({}));

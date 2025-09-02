@@ -285,7 +285,7 @@ export function LifestyleSection({ articles, onReadMore, onEdit }: LifestyleSect
 
       {isAdmin && (
         <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mb-8">
-          <div className="px-6 py-4 bg-gradient-to-r from-slate-50 to-gray-50 border-y border-gray-200 shadow-sm">
+          <div className="px-6 py-4" style={{backgroundColor: 'var(--card)'}}>
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold">Layout Editor</span>
               {!editingLayout ? (

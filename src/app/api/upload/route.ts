@@ -2,6 +2,7 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import path from 'path';
 import fs from 'fs/promises';
@@ -36,7 +37,7 @@ function getExtensionFromType(type?: string): string {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || (session as any).user?.role !== 'ADMIN') {
+  if (!session || (session as Session).user?.role !== 'ADMIN') {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
     await fs.mkdir(uploadsDir, { recursive: true });
 
-    const baseName = (file as any).name ? String((file as any).name) : 'upload';
+    const baseName = file.name ? String(file.name) : 'upload';
     const extFromName = path.extname(baseName);
     const ext = extFromName || getExtensionFromType(file.type);
 

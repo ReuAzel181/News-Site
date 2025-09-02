@@ -22,6 +22,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('#');
   const [isSignInModalOpen, setIsSignInModalOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { data: session } = useSession();
 
@@ -60,19 +61,51 @@ export function Header() {
 
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
+    
+    // Immediately update active section for instant visual feedback
+    setActiveSection(href);
+    
     if (href === '#') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Smooth scroll to top with custom easing
+      const scrollToTop = () => {
+        const currentScroll = window.pageYOffset;
+        if (currentScroll > 0) {
+          window.requestAnimationFrame(scrollToTop);
+          window.scrollTo(0, currentScroll - (currentScroll / 8));
+        }
+      };
+      scrollToTop();
     } else {
       const element = document.querySelector(href);
       if (element) {
-        const headerHeight = 80; // Account for fixed header
+        const headerHeight = 80;
         const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
         const offsetPosition = elementPosition - headerHeight;
         
-        window.scrollTo({
-          top: offsetPosition,
-          behavior: 'smooth'
-        });
+        // Enhanced smooth scrolling with custom easing
+        const startPosition = window.pageYOffset;
+        const distance = offsetPosition - startPosition;
+        const duration = Math.min(Math.abs(distance) / 2, 800); // Dynamic duration based on distance
+        let start: number | null = null;
+        
+        const step = (timestamp: number) => {
+          if (!start) start = timestamp;
+          const progress = Math.min((timestamp - start) / duration, 1);
+          
+          // Easing function for smoother animation
+          const easeInOutCubic = (t: number) => {
+            return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+          };
+          
+          const easedProgress = easeInOutCubic(progress);
+          window.scrollTo(0, startPosition + (distance * easedProgress));
+          
+          if (progress < 1) {
+            window.requestAnimationFrame(step);
+          }
+        };
+        
+        window.requestAnimationFrame(step);
       }
     }
     setIsMenuOpen(false); // Close mobile menu after clicking
@@ -91,12 +124,14 @@ export function Header() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         isScrolled
-          ? 'backdrop-blur-md shadow-xl border-b'
-          : 'shadow-md border-b'
+          ? 'backdrop-blur-md'
+          : ''
       )}
       style={{
         backgroundColor: isScrolled ? 'rgba(var(--background-rgb), 0.95)' : 'var(--background)',
-        borderColor: 'var(--border)'
+        boxShadow: 'none',
+        border: 'none',
+        outline: 'none'
       }}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
@@ -104,18 +139,22 @@ export function Header() {
     >
   
       {/* Main Navigation */}
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" role="navigation" aria-label="Main navigation">
-        <div className="flex justify-between items-center h-16">
+      <nav className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8" role="navigation" aria-label="Main navigation">
+        <div className="flex justify-between items-center h-20">
           {/* Enhanced Logo */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex-shrink-0"
           >
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            <Link href="/" className="flex items-center group">
+              <motion.span 
+                className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight transition-colors duration-200 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
                 Veritas Bulletin
-              </span>
+              </motion.span>
             </Link>
           </motion.div>
 
@@ -126,13 +165,14 @@ export function Header() {
           />
 
           {/* Right side actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             {/* Search Button */}
             <Link href="/search">
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.08, y: -1 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-deep-blue dark:hover:text-deep-blue hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="p-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                style={{ borderRadius: '0px', border: 'none', outline: 'none' }}
                 aria-label="Search"
               >
                 <Search className="w-5 h-5" />
@@ -144,10 +184,16 @@ export function Header() {
 
             {/* User Menu */}
             {session ? (
-              <div className="relative group">
+              <div 
+                className="relative"
+                onMouseEnter={() => setIsDropdownOpen(true)}
+                onMouseLeave={() => setIsDropdownOpen(false)}
+              >
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  className="flex items-center space-x-2 p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-deep-blue dark:hover:text-deep-blue hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  whileHover={{ scale: 1.05, y: -1 }}
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center space-x-3 p-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                  style={{ borderRadius: '0px', border: 'none', outline: 'none' }}
                 >
                   <User className="w-5 h-5" />
                   <span className="hidden sm:block text-sm font-medium">
@@ -156,19 +202,28 @@ export function Header() {
                 </motion.button>
 
                 {/* Dropdown Menu */}
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div 
+                  className={`absolute right-0 mt-1 w-52 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-200 z-50 ${
+                    isDropdownOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
+                  }`}
+                  style={{ borderRadius: '0px' }}
+                >
                   {session?.user?.role === 'ADMIN' && (
                     <Link
                       href="/admin"
-                      className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"
+                      className="flex items-center space-x-3 px-5 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 border-b border-gray-200 dark:border-gray-700"
+                      onClick={() => setIsDropdownOpen(false)}
                     >
                       <Settings className="w-4 h-4" />
                       <span>Admin Dashboard</span>
                     </Link>
                   )}
                   <button
-                    onClick={handleSignOut}
-                    className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"
+                    onClick={() => {
+                      handleSignOut();
+                      setIsDropdownOpen(false);
+                    }}
+                    className="flex items-center space-x-3 w-full px-5 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                   >
                     <LogOut className="w-4 h-4" />
                     <span>Sign Out</span>
@@ -176,23 +231,27 @@ export function Header() {
                 </div>
               </div>
             ) : (
-              <button
+              <motion.button
                 onClick={() => setIsSignInModalOpen(true)}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200"
+                style={{ borderRadius: '0px', border: 'none', outline: 'none' }}
               >
                 Sign In
-              </button>
+              </motion.button>
             )}
 
             {/* Mobile menu button */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.08, y: -1 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-expanded={isMenuOpen}
               aria-controls="mobile-menu"
               aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-              className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-deep-blue dark:hover:text-deep-blue hover:bg-gray-100 dark:hover:bg-gray-800 border-2 border-transparent hover:border-deep-blue dark:hover:border-deep-blue transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="md:hidden p-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 focus:outline-none"
+              style={{ borderRadius: '0px', border: 'none', outline: 'none' }}
             >
               <AnimatePresence mode="wait">
                 {isMenuOpen ? (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Plus, 
@@ -16,16 +16,18 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/utils/cn';
+// import { fetchMixedNews } from '@/services/newsService';
+// import { Article } from '@/components/home/types';
 
-// Mock data for articles
+// Mock data for articles (using real-like data structure)
 const mockArticles = [
   {
     id: '1',
     title: 'Artificial Intelligence Revolutionizes Healthcare Diagnostics',
     category: 'Technology',
     author: 'Dr. Emily Watson',
-    status: 'published',
-    publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    status: 'published' as const,
+    publishedAt: new Date('2024-01-15T10:00:00Z'),
     views: 8420,
     featured: true
   },
@@ -34,8 +36,8 @@ const mockArticles = [
     title: 'Global Renewable Energy Adoption Reaches Record High',
     category: 'Environment',
     author: 'Mark Thompson',
-    status: 'published',
-    publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+    status: 'published' as const,
+    publishedAt: new Date('2024-01-15T08:00:00Z'),
     views: 12150,
     featured: false
   },
@@ -44,7 +46,7 @@ const mockArticles = [
     title: 'Space Tourism Industry Takes Off with Successful Missions',
     category: 'Science',
     author: 'Sarah Chen',
-    status: 'draft',
+    status: 'draft' as const,
     publishedAt: null,
     views: 0,
     featured: false
@@ -54,10 +56,20 @@ const mockArticles = [
     title: 'Cryptocurrency Market Shows Signs of Stabilization',
     category: 'Finance',
     author: 'Robert Kim',
-    status: 'published',
-    publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
+    status: 'published' as const,
+    publishedAt: new Date('2024-01-15T04:00:00Z'),
     views: 15300,
     featured: false
+  },
+  {
+    id: '5',
+    title: 'Climate Change Summit Reaches Historic Agreement',
+    category: 'Environment',
+    author: 'Lisa Rodriguez',
+    status: 'published' as const,
+    publishedAt: new Date('2024-01-15T06:00:00Z'),
+    views: 9876,
+    featured: true
   }
 ];
 
@@ -67,44 +79,78 @@ const statusColors = {
   archived: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
 };
 
-const stats = [
-  {
-    name: 'Total Articles',
-    value: '1,234',
-    change: '+12%',
-    changeType: 'positive',
-    icon: Newspaper
-  },
-  {
-    name: 'Published Today',
-    value: '23',
-    change: '+5%',
-    changeType: 'positive',
-    icon: Calendar
-  },
-  {
-    name: 'Total Views',
-    value: '89.2K',
-    change: '+18%',
-    changeType: 'positive',
-    icon: Eye
-  },
-  {
-    name: 'Active Authors',
-    value: '45',
-    change: '+2%',
-    changeType: 'positive',
-    icon: User
-  }
-];
+// Calculate real statistics from articles data
+const calculateStats = (articles: any[]) => {
+  const totalArticles = articles.length;
+  const publishedArticles = articles.filter(article => article.status === 'published');
+  const totalViews = articles.reduce((sum, article) => sum + (article.views || 0), 0);
+  const uniqueAuthors = new Set(articles.map(article => article.author)).size;
+  
+  // Calculate articles published today (using a fixed date for SSR consistency)
+  const fixedToday = new Date('2024-01-15'); // Use a fixed date to prevent hydration mismatch
+  const todayStart = new Date(fixedToday.getFullYear(), fixedToday.getMonth(), fixedToday.getDate());
+  const publishedToday = articles.filter(article => 
+    article.publishedAt && article.publishedAt >= todayStart
+  ).length;
+  
+  return [
+    {
+      name: 'Total Articles',
+      value: totalArticles.toString(),
+      change: '+12%',
+      changeType: 'positive',
+      icon: Newspaper
+    },
+    {
+      name: 'Published Today',
+      value: publishedToday.toString(),
+      change: '+5%',
+      changeType: 'positive',
+      icon: Calendar
+    },
+    {
+      name: 'Total Views',
+      value: totalViews > 1000 ? `${(totalViews / 1000).toFixed(1)}K` : totalViews.toString(),
+      change: '+18%',
+      changeType: 'positive',
+      icon: Eye
+    },
+    {
+      name: 'Active Authors',
+      value: uniqueAuthors.toString(),
+      change: '+2%',
+      changeType: 'positive',
+      icon: User
+    }
+  ];
+};
 
 export default function AdminDashboard() {
+  const [articles, setArticles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
 
-  const filteredArticles = mockArticles.filter(article => {
+  // Load articles on component mount
+  useEffect(() => {
+    const loadArticles = () => {
+      setLoading(true);
+      // Simulate loading delay
+      setTimeout(() => {
+        setArticles(mockArticles);
+        setLoading(false);
+      }, 500);
+    };
+
+    loadArticles();
+  }, []);
+
+  // Calculate statistics from real data
+  const stats = calculateStats(articles);
+
+  const filteredArticles = articles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          article.author.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
@@ -132,7 +178,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
@@ -146,7 +192,8 @@ export default function AdminDashboard() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center px-4 py-2 bg-deep-blue hover:bg-blue-900 text-white font-medium rounded-lg transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
+              style={{ borderRadius: '0px', border: 'none', outline: 'none' }}
             >
               <Plus className="w-4 h-4 mr-2" />
               New Article
@@ -166,7 +213,8 @@ export default function AdminDashboard() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+                className="bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700"
+
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -177,7 +225,7 @@ export default function AdminDashboard() {
                       {stat.value}
                     </p>
                   </div>
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20" style={{ borderRadius: '0px' }}>
                     <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
@@ -196,7 +244,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-6">
           <div className="p-6">
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Search */}
@@ -208,7 +256,8 @@ export default function AdminDashboard() {
                     placeholder="Search articles..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    style={{ borderRadius: '0px' }}
                   />
                 </div>
               </div>
@@ -217,7 +266,7 @@ export default function AdminDashboard() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="all">All Categories</option>
                 <option value="Technology">Technology</option>
@@ -230,7 +279,7 @@ export default function AdminDashboard() {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="all">All Status</option>
                 <option value="published">Published</option>
@@ -242,18 +291,18 @@ export default function AdminDashboard() {
         </div>
 
         {/* Articles Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Articles ({filteredArticles.length})
+                Articles ({loading ? 'Loading...' : filteredArticles.length})
               </h2>
               {selectedArticles.length > 0 && (
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     {selectedArticles.length} selected
                   </span>
-                  <button className="px-3 py-1 text-sm bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
+                  <button className="px-3 py-1 text-sm bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors">
                     Delete
                   </button>
                 </div>
@@ -270,7 +319,7 @@ export default function AdminDashboard() {
                       type="checkbox"
                       checked={selectedArticles.length === filteredArticles.length && filteredArticles.length > 0}
                       onChange={selectAllArticles}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -297,7 +346,19 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredArticles.map((article) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                      Loading articles...
+                    </td>
+                  </tr>
+                ) : filteredArticles.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                      No articles found
+                    </td>
+                  </tr>
+                ) : filteredArticles.map((article) => (
                   <motion.tr
                     key={article.id}
                     initial={{ opacity: 0 }}
@@ -309,7 +370,7 @@ export default function AdminDashboard() {
                         type="checkbox"
                         checked={selectedArticles.includes(article.id)}
                         onChange={() => toggleArticleSelection(article.id)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                     </td>
                     <td className="px-6 py-4">
@@ -319,7 +380,7 @@ export default function AdminDashboard() {
                             {article.title}
                           </div>
                           {article.featured && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
                               Featured
                             </span>
                           )}
@@ -327,7 +388,7 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                         {article.category}
                       </span>
                     </td>
@@ -336,7 +397,7 @@ export default function AdminDashboard() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={cn(
-                        'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                        'inline-flex items-center px-2 py-0.5 text-xs font-medium',
                         statusColors[article.status as keyof typeof statusColors]
                       )}>
                         {article.status}

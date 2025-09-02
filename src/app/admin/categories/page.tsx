@@ -142,7 +142,7 @@ export default function CategoriesPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Category
@@ -155,7 +155,7 @@ export default function CategoriesPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 p-6"
         >
           <div className="flex items-center justify-between">
             <div>
@@ -166,7 +166,7 @@ export default function CategoriesPage() {
                 {mockCategories.length}
               </p>
             </div>
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20">
               <Tag className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function CategoriesPage() {
                 {activeCategories}
               </p>
             </div>
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <div className="p-3 bg-green-50 dark:bg-green-900/20">
               <Eye className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function CategoriesPage() {
                 {totalArticles}
               </p>
             </div>
-            <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+            <div className="p-3 bg-purple-50 dark:bg-purple-900/20">
               <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
@@ -229,7 +229,7 @@ export default function CategoriesPage() {
                 {(monthlyViews / 1000).toFixed(1)}K
               </p>
             </div>
-            <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+            <div className="p-3 bg-orange-50 dark:bg-orange-900/20">
               <TrendingUp className="w-6 h-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function CategoriesPage() {
       </div>
 
       {/* Search */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+      <div className="bg-white dark:bg-gray-800 mb-6">
         <div className="p-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -246,7 +246,7 @@ export default function CategoriesPage() {
               placeholder="Search categories..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
           </div>
         </div>
@@ -257,7 +257,7 @@ export default function CategoriesPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6"
+          className="bg-blue-50 dark:bg-blue-900/20 p-4 mb-6"
         >
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-blue-900 dark:text-blue-300">
@@ -266,19 +266,19 @@ export default function CategoriesPage() {
             <div className="flex space-x-2">
               <button
                 onClick={() => handleBulkAction('activate')}
-                className="px-3 py-1 text-sm bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 rounded-md hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
+                className="px-3 py-1 text-sm bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
               >
                 Activate
               </button>
               <button
                 onClick={() => handleBulkAction('deactivate')}
-                className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 rounded-md hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors"
+                className="px-3 py-1 text-sm bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-colors"
               >
                 Deactivate
               </button>
               <button
                 onClick={() => handleBulkAction('delete')}
-                className="px-3 py-1 text-sm bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded-md hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                className="px-3 py-1 text-sm bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
               >
                 Delete
               </button>
@@ -295,7 +295,7 @@ export default function CategoriesPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden"
+            className="bg-white dark:bg-gray-800 overflow-hidden"
           >
             {/* Category Header */}
             <div className="p-6">
@@ -305,10 +305,10 @@ export default function CategoriesPage() {
                     type="checkbox"
                     checked={selectedCategories.includes(category.id)}
                     onChange={() => toggleCategorySelection(category.id)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="text-blue-600"
                   />
                   <div
-                    className="w-4 h-4 rounded-full"
+                    className="w-4 h-4"
                     style={{ backgroundColor: category.color }}
                   ></div>
                   <div>
@@ -343,7 +343,7 @@ export default function CategoriesPage() {
               {/* Status Badge */}
               <div className="flex items-center justify-between mb-4">
                 <span className={cn(
-                  'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                  'inline-flex items-center px-2 py-0.5 text-xs font-medium',
                   category.isActive
                     ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                     : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'

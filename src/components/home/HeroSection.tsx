@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Clock, User, Globe } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/utils/cn';
 import { useSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 
 // Default featured articles used when no custom slides are saved yet
@@ -72,7 +72,7 @@ const categoryColors = {
 
 export function HeroSection() {
   const { data: session, status: sessionStatus } = useSession();
-  const isAdmin = sessionStatus === 'authenticated' && !!session?.user && (session.user as any).role === 'ADMIN';
+  const isAdmin = sessionStatus === 'authenticated' && !!session?.user && (session as Session).user?.role === 'ADMIN';
 
   const [slides, setSlides] = useState<HeroSlide[]>(defaultSlides);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -97,10 +97,10 @@ export function HeroSection() {
         const serverSlides: HeroSlide[] = Array.isArray(json?.data?.heroSlides) ? json.data.heroSlides : [];
         if (!isCancelled && serverSlides.length) {
           // Normalize dates
-          const normalized = serverSlides.map((s) => ({ ...s, publishedAt: s.publishedAt ? new Date(s.publishedAt) : new Date() }));
+          const normalized = serverSlides.map((s) => ({ ...s, publishedAt: s.publishedAt ? new Date(s.publishedAt) : new Date('2024-01-01') }));
           setSlides(normalized);
         }
-      } catch (e) {
+      } catch {
         // silent fail, keep defaults
       }
     }
@@ -150,7 +150,7 @@ export function HeroSection() {
     }));
   };
   const addSlide = () => {
-    const id = Date.now().toString();
+    const id = `slide-${Math.floor(Math.random() * 1000000)}-${slides.length}`;
     const slugify = (str: string) => str
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -165,7 +165,7 @@ export function HeroSection() {
       imageUrl: '',
       category: 'General',
       author: 'Unknown',
-      publishedAt: new Date(),
+      publishedAt: new Date('2024-01-01'),
       views: 0,
       slug: `new-${slugify(title)}-${id}`,
       source: ''
@@ -174,64 +174,7 @@ export function HeroSection() {
   const removeSlide = (index: number) => {
     setDraftSlides(prev => prev.filter((_, i) => i !== index));
   };
-  const moveSlide = (index: number, direction: -1 | 1) => {
-    setDraftSlides(prev => {
-      const next = [...prev];
-      const target = index + direction;
-      if (target < 0 || target >= next.length) return prev;
-      [next[index], next[target]] = [next[target], next[index]];
-      return next;
-    });
-  };
-  // Simple client-side image editor: center-crop to 16:9 at HD resolution
-  const autoCropTo16x9 = async (slideIndex: number, slideId: string) => {
-    const file = localFiles[slideId];
-    if (!file) {
-      alert('Select an image file first to enable cropping.');
-      return;
-    }
-    try {
-      const img = document.createElement('img');
-      (img as any).decoding = 'async';
-      img.src = URL.createObjectURL(file);
-      await new Promise((resolve, reject) => {
-        img.onload = resolve as any;
-        img.onerror = reject as any;
-      });
-      const srcW = (img as HTMLImageElement).naturalWidth || (img as any).width;
-      const srcH = (img as HTMLImageElement).naturalHeight || (img as any).height;
-      const targetRatio = 16 / 9;
-      let cropW = srcW;
-      let cropH = Math.round(srcW / targetRatio);
-      if (cropH > srcH) {
-        cropH = srcH;
-        cropW = Math.round(srcH * targetRatio);
-      }
-      const sx = Math.max(0, Math.floor((srcW - cropW) / 2));
-      const sy = Math.max(0, Math.floor((srcH - cropH) / 2));
-  
-      const canvas = document.createElement('canvas');
-      // Export to HD 1920x1080 (maintains 16:9)
-      canvas.width = 1920;
-      canvas.height = 1080;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas not supported');
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-      ctx.drawImage(img, sx, sy, cropW, cropH, 0, 0, canvas.width, canvas.height);
-  
-      const blob: Blob = await new Promise((resolve, reject) => {
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Failed to export image'))), 'image/jpeg', 0.92);
-      });
-      const editedFile = new File([blob], 'hero-slide-16x9.jpg', { type: 'image/jpeg' });
-      const url = URL.createObjectURL(editedFile);
-      setLocalFiles(prev => ({ ...prev, [slideId]: editedFile }));
-      updateDraft(slideIndex, 'imageUrl', url);
-    } catch (e) {
-      console.error('Auto-crop failed', e);
-      alert('Cropping failed. Please try another image.');
-    }
-  };
+
   const saveSlides = async () => {
     setSaving(true);
     try {
@@ -381,7 +324,7 @@ export function HeroSection() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="whitespace-nowrap">{mounted && currentArticle ? (() => { const d = new Date(currentArticle.publishedAt as any); return isNaN(d.getTime()) ? 'N/A' : formatDistanceToNow(d, { addSuffix: true }); })() : 'Loading...'}</span>
+                        <span className="whitespace-nowrap">{mounted && currentArticle ? (() => { const d = new Date(currentArticle.publishedAt as string | Date); return isNaN(d.getTime()) ? 'N/A' : formatDistanceToNow(d, { addSuffix: true }); })() : 'Loading...'}</span>
                       </div>
                       {currentArticle?.source && (
                         <div className="flex items-center space-x-1">
@@ -508,7 +451,7 @@ export function HeroSection() {
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <label className="text-xs font-semibold block">Published At</label>
-                            <input type="datetime-local" value={(() => { const dt = s.publishedAt ? new Date(s.publishedAt as any) : null; return dt && !isNaN(dt.getTime()) ? dt.toISOString().slice(0,16) : ''; })()} onChange={(e) => { const v = e.target.value; updateDraft(idx, 'publishedAt', v ? new Date(v) : ''); }} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
+                            <input type="datetime-local" value={(() => { const dt = s.publishedAt ? new Date(s.publishedAt as string | Date) : null; return dt && !isNaN(dt.getTime()) ? dt.toISOString().slice(0,16) : ''; })()} onChange={(e) => { const v = e.target.value; updateDraft(idx, 'publishedAt', v ? new Date(v) : ''); }} className="w-full px-2 py-1 bg-white text-black border-0 rounded-none shadow-none focus:outline-none focus:ring-0" />
                           </div>
                           <div>
                             <label className="text-xs font-semibold block">Source</label>
