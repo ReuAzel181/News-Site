@@ -8,13 +8,6 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   darkMode: "class",
-  safelist: [
-    // Ensure responsive variants for dynamically composed classes in the layout editor
-    { pattern: /(grid-cols)-(1|2|3|4|5|6)/, variants: ['md','lg','xl'] },
-    { pattern: /(grid-rows)-(1|2|3|4|5|6)/, variants: ['md','lg','xl'] },
-    { pattern: /(col-span)-(1|2|3|4|5|6)/, variants: ['md','lg','xl'] },
-    { pattern: /(row-span)-(1|2|3|4|5|6)/, variants: ['md','lg','xl'] },
-  ],
   theme: {
     extend: {
       fontFamily: {

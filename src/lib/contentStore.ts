@@ -83,7 +83,7 @@ export function readContent(): ContentData {
       breakingNews: Array.isArray(parsed.breakingNews) ? parsed.breakingNews : DEFAULT_CONTENT.breakingNews,
       availableTags: Array.isArray(parsed.availableTags) ? parsed.availableTags : DEFAULT_CONTENT.availableTags,
       articleOverrides: parsed.articleOverrides || {},
-      heroSlides: Array.isArray((parsed as any).heroSlides) ? (parsed as any).heroSlides : []
+      heroSlides: Array.isArray(parsed.heroSlides) ? parsed.heroSlides : []
     };
   } catch (e) {
     console.error('Failed to read content store, using defaults:', e);

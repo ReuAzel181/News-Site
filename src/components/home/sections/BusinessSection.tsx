@@ -276,6 +276,7 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
       </div>
     );
   });
+  GridOverlay.displayName = 'GridOverlay';
 
   return (
     <div className="mt-12">

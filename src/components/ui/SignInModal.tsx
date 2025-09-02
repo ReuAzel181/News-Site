@@ -28,7 +28,6 @@ export function SignInModal({ isOpen, onClose, onSuccess }: SignInModalProps) {
   const [formState, setFormState] = useState<FormState>('idle');
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ username: boolean; password: boolean }>({ username: false, password: false });
-  const [isValidating, setIsValidating] = useState(false);
   const [loginProgress, setLoginProgress] = useState(0);
   
   const { showToast, ToastComponent } = useToast();
@@ -53,10 +52,9 @@ export function SignInModal({ isOpen, onClose, onSuccess }: SignInModalProps) {
       scale: 1,
       y: 0,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         damping: 35,
-        stiffness: 300,
-        duration: 0.15
+        stiffness: 300
       }
     },
     exit: { 
@@ -303,7 +301,7 @@ export function SignInModal({ isOpen, onClose, onSuccess }: SignInModalProps) {
           onClose();
         }, 500);
       }
-    } catch (error) {
+    } catch {
       clearInterval(progressInterval);
       setFormState('error');
       setErrors({ general: 'An unexpected error occurred. Please try again.' });

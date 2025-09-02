@@ -237,7 +237,7 @@ export function HeroSection() {
 
   const indicatorButtons = useMemo(() => currentSlides.map((_, index) => (
     <IndicatorButton key={index} index={index} />
-  )), [currentSlides, currentSlide]);
+  )), [currentSlides]);
 
   return (
     <section className="relative h-[85vh] min-h-[650px] overflow-hidden mb-4 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20">

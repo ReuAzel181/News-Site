@@ -113,10 +113,9 @@ export default function SettingsPage() {
           type="text"
           value={settings.siteName}
           onChange={(e) => handleSettingChange('siteName', e.target.value)}
-          className="w-full px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
-      
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Site Description
@@ -125,10 +124,9 @@ export default function SettingsPage() {
           value={settings.siteDescription}
           onChange={(e) => handleSettingChange('siteDescription', e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
-      
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Site URL
@@ -137,10 +135,9 @@ export default function SettingsPage() {
           type="url"
           value={settings.siteUrl}
           onChange={(e) => handleSettingChange('siteUrl', e.target.value)}
-          className="w-full px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
-      
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Admin Email
@@ -149,11 +146,14 @@ export default function SettingsPage() {
           type="email"
           value={settings.adminEmail}
           onChange={(e) => handleSettingChange('adminEmail', e.target.value)}
-          className="w-full px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
     </div>
   );
+  renderGeneralSettings.displayName = 'GeneralSettings';
+
+
 
   const renderContentSettings = () => (
     <div className="space-y-6">
@@ -206,6 +206,7 @@ export default function SettingsPage() {
       </div>
     </div>
   );
+  renderContentSettings.displayName = 'ContentSettings';
 
   const renderUserSettings = () => (
     <div className="space-y-6">
@@ -260,6 +261,7 @@ export default function SettingsPage() {
       </div>
     </div>
   );
+  renderUserSettings.displayName = 'UserSettings';
 
   const renderNotificationSettings = () => (
     <div className="space-y-6">
@@ -314,6 +316,7 @@ export default function SettingsPage() {
       </div>
     </div>
   );
+  renderNotificationSettings.displayName = 'NotificationSettings';
 
   const renderSecuritySettings = () => (
     <div className="space-y-6">
@@ -368,6 +371,7 @@ export default function SettingsPage() {
       </div>
     </div>
   );
+  renderSecuritySettings.displayName = 'SecuritySettings';
 
   const renderAppearanceSettings = () => (
     <div className="space-y-6">
@@ -390,6 +394,7 @@ export default function SettingsPage() {
       </div>
     </div>
   );
+  renderAppearanceSettings.displayName = 'AppearanceSettings';
 
   const renderSettingsContent = () => {
     switch (activeSection) {
@@ -409,6 +414,7 @@ export default function SettingsPage() {
         return renderGeneralSettings();
     }
   };
+  renderSettingsContent.displayName = 'SettingsContent';
 
   return (
     <div className="p-6">

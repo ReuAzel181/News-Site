@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 import { Article } from '../types';
@@ -219,7 +219,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
   const GridOverlay = React.memo(() => {
     if (!editingLayout || !showGridLines) return null;
     
-    const { cols } = gridMetrics;
+    const { cols: _cols } = gridMetrics;
     const overlayItems: React.ReactElement[] = [];
     
     // Create overlay items that match the actual grid items
@@ -257,6 +257,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
       </div>
     );
   });
+  GridOverlay.displayName = 'GridOverlay';
 
   return (
     <section className="mt-12 mb-16">
@@ -468,7 +469,6 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
                     editingLayout={editingLayout}
                     itemLayout={itemLayout}
                     currentBreakpoint={currentBreakpoint}
-                    templateName={activeTemplate.name}
                     index={index}
                   />
                 );
@@ -488,11 +488,10 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
     onEdit,
     onEditBreaking,
     isAdmin,
-    editingLayout,
+    editingLayout: _editingLayout,
     itemLayout,
-    currentBreakpoint,
-    templateName,
-    index
+    currentBreakpoint: _currentBreakpoint,
+    index: _index
   }: {
     article: Article;
     onReadMore?: (article: Article) => void;
@@ -502,7 +501,6 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
     editingLayout: boolean;
     itemLayout?: ItemLayout;
     currentBreakpoint: Breakpoint;
-    templateName: string;
     index: number;
   }) {
     const colSpanClasses = useMemo(() => {

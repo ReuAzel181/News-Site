@@ -9,7 +9,6 @@ export function NewsTicker() {
   const isAdmin = !!session?.user && session.user.role === 'ADMIN';
 
   const [items, setItems] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [draftItems, setDraftItems] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -47,7 +46,7 @@ export function NewsTicker() {
             ]);
           }
         }
-      } catch (e) {
+      } catch {
         if (mounted) {
           setItems([
             'Supreme Court declares Articles of Impeachment vs VP Sara Duterte as unconstitutional',
@@ -60,7 +59,7 @@ export function NewsTicker() {
           ]);
         }
       } finally {
-        if (mounted) setLoading(false);
+        // Loading complete
       }
     };
     load();
