@@ -93,7 +93,6 @@ const statusColors = {
 // Calculate real statistics from articles data
 const calculateStats = (articles: Article[]) => {
   const totalArticles = articles.length;
-  const publishedArticles = articles.filter(article => article.status === 'published');
   const totalViews = articles.reduce((sum, article) => sum + (article.views || 0), 0);
   const uniqueAuthors = new Set(articles.map(article => article.author)).size;
   
@@ -137,7 +136,7 @@ const calculateStats = (articles: Article[]) => {
 };
 
 export default function AdminDashboard() {
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');

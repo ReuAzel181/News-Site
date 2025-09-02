@@ -133,7 +133,7 @@ export function HeroSection() {
     setEditMode(false);
     setDraftSlides([]);
   };
-  const updateDraft = (index: number, field: keyof HeroSlide, value: any) => {
+  const updateDraft = (index: number, field: keyof HeroSlide, value: string | number | Date) => {
     setDraftSlides(prev => prev.map((s, i) => {
       if (i !== index) return s;
       const next = { ...s, [field]: value } as HeroSlide;
@@ -222,7 +222,7 @@ export function HeroSection() {
     setDetailsOpen((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const indicatorButtons = useMemo(() => currentSlides.map((_, index) => (
+  const IndicatorButton = ({ index }: { index: number }) => (
     <button
       key={index}
       onClick={() => goToSlide(index)}
@@ -232,6 +232,11 @@ export function HeroSection() {
       aria-label={`Go to slide ${index + 1}`}
       style={{ borderRadius: 0 }}
     />
+  );
+  IndicatorButton.displayName = 'IndicatorButton';
+
+  const indicatorButtons = useMemo(() => currentSlides.map((_, index) => (
+    <IndicatorButton key={index} index={index} />
   )), [currentSlides, currentSlide]);
 
   return (

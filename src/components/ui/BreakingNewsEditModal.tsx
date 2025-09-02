@@ -54,7 +54,7 @@ export default function BreakingNewsEditModal({
   };
 
   const handleSave = async () => {
-    let finalArticle = { ...draft };
+    const finalArticle = { ...draft };
 
     if (selectedFile) {
       try {
