@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
+import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { Article } from '../types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
@@ -125,9 +126,10 @@ interface SportsSectionProps {
   articles: Article[];
   onReadMore?: (article: Article) => void;
   onEdit?: (article: Article) => void;
+  onDelete?: (articleId: string) => void;
 }
 
-export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionProps) {
+export function SportsSection({ articles, onReadMore, onEdit, onDelete }: SportsSectionProps) {
   const { data: session } = useSession();
   const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   const sportsNews = articles
@@ -213,6 +215,7 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
     article: Article;
     onReadMore?: (article: Article) => void;
     onEdit?: (article: Article) => void;
+    onDelete?: (articleId: string) => void;
     isAdmin: boolean;
     editingLayout: boolean;
     itemLayout?: ItemLayout;
@@ -221,30 +224,42 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
   }
 
   // GridItem component for individual article rendering
-  const GridItem = ({ article, onReadMore, onEdit, isAdmin, editingLayout, itemLayout, currentBreakpoint, templateName }: GridItemProps) => {
+  const GridItem = ({ article, onReadMore, onEdit, onDelete, isAdmin, editingLayout, itemLayout, currentBreakpoint, templateName }: GridItemProps) => {
     const colSpanClass = itemLayout ? COL_SPAN_CLASS[itemLayout.colSpan[currentBreakpoint]] : '';
     const isFeatured = itemLayout?.priority === 'featured';
     const isCompact = itemLayout?.priority === 'compact';
     
     return (
       <div className={cn(
-        'cursor-pointer h-full',
+        'transition-none h-full',
         colSpanClass,
         editingLayout && 'ring-1 ring-blue-200 ring-opacity-50'
       )} onClick={() => onReadMore?.(article)}>
-        {isAdmin && onEdit && !editingLayout && (
-          <div className="w-full flex justify-end mb-2">
-            <button
-              type="button"
-              className="px-2 py-1 text-xs font-semibold bg-black text-white"
-              onClick={(e) => { e.stopPropagation(); onEdit(article); }}
-              aria-label={`Edit ${article.title}`}
-            >
-              Edit
-            </button>
+        {isAdmin && (onEdit || onDelete) && !editingLayout && (
+          <div className="w-full flex justify-end gap-2 mb-2">
+            {onEdit && (
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-semibold bg-black text-white rounded-none shadow-none border-none transition-none"
+                onClick={(e) => { e.stopPropagation(); onEdit(article); }}
+                aria-label={`Edit ${article.title}`}
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-semibold bg-red-600 text-white rounded-none shadow-none border-none transition-none"
+                onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
+                aria-label={`Remove ${article.title}`}
+              >
+                Remove
+              </button>
+            )}
           </div>
         )}
-        <div className="space-y-3 p-6 h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
+        <div className="space-y-3 p-6 h-full flex flex-col bg-white dark:bg-gray-900">
           <div className={cn(
             'relative w-full',
             isFeatured ? 'aspect-[16/10]' : isCompact ? 'aspect-[4/3]' : 'aspect-[4/3]'
@@ -261,7 +276,7 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
             />
           </div>
           <div className="space-y-2 flex-1 flex flex-col">
-            <span className="inline-block px-2 py-1 text-xs font-semibold bg-blue-600 text-white" style={{borderRadius: '0px'}}>
+            <span className="inline-block px-2 py-1 text-xs font-semibold bg-blue-600 text-white">
               {article.category}
             </span>
             <h3 className={cn(
@@ -271,7 +286,7 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
               {article.title}
             </h3>
             <p className={cn(
-              'line-clamp-2 news-content',
+              'line-clamp-2 news-content text-gray-500 font-sans',
               isFeatured ? 'text-sm' : 'text-xs'
             )}>
               {article.excerpt}
@@ -297,7 +312,7 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
             {isAdmin && (
               <button
                 type="button"
-                className="px-4 py-2 text-xs font-medium bg-blue-600 text-white border-none shadow-none hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 text-xs font-medium bg-blue-600 text-white border-none shadow-none"
                 onClick={() => {
                   // Handle add new sports article
                   console.log('Add new sports article');
@@ -309,7 +324,11 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
             )}
           </div>
         </div>
-        <div className="w-full h-px bg-gradient-to-r from-gray-400 via-gray-300 to-transparent mt-2"></div>
+        <div className="w-full h-0.5 mt-2 relative overflow-hidden">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t-2 border-solid border-gray-800 dark:border-gray-300"></div>
+          </div>
+        </div>
       </div>
 
       {isAdmin && (
@@ -320,7 +339,7 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
               {!editingLayout ? (
                 <button
                   type="button"
-                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none"
                   onClick={startEditing}
                 >
                   Customize Layout
@@ -329,7 +348,7 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none hover:bg-gray-600 transition-colors"
+                    className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none"
                     onClick={cancelEditing}
                   >
                     Cancel
@@ -337,9 +356,9 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
                   <button
                     type="button"
                     className={cn(
-                      'px-4 py-2 text-xs rounded-none border-none shadow-none transition-colors',
+                      'px-4 py-2 text-xs rounded-none border-none shadow-none',
                       hasUnsavedChanges
-                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        ? 'bg-green-600 text-white'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     )}
                     onClick={saveChanges}
@@ -466,23 +485,74 @@ export function SportsSection({ articles, onReadMore, onEdit }: SportsSectionPro
 
       <div className="w-full">
         <div className="relative">
-          <div ref={gridRef} className={cn(gridClass, 'w-full')}>
-            {sportsNews.slice(0, itemCount).map((article, index) => {
-              const itemLayout = selectedTemplate.itemLayouts?.[index];
-              return (
-                <GridItem
-                  key={article.id}
-                  article={article}
-                  onReadMore={onReadMore}
-                  onEdit={onEdit}
-                  isAdmin={isAdmin}
-                  editingLayout={editingLayout}
-                  itemLayout={itemLayout}
-                  currentBreakpoint={bp}
-                  templateName={selectedTemplate.name}
-                />
-              );
-            })}
+          <div ref={gridRef} className="w-full relative flex flex-col">
+            {(() => {
+              const articles = sportsNews.slice(0, itemCount);
+              const rows: Array<Array<{ article: Article; itemLayout?: ItemLayout; index: number }>> = [];
+            let currentRow: Array<{ article: Article; itemLayout?: ItemLayout; index: number }> = [];
+            let currentRowSpan = 0;
+              
+              articles.forEach((article, index) => {
+                const itemLayout = selectedTemplate.itemLayouts?.[index];
+                const colSpan = itemLayout?.colSpan?.[bp] || 1;
+                
+                if (currentRowSpan + colSpan > gridMetrics.cols) {
+                  if (currentRow.length > 0) {
+                    rows.push([...currentRow]);
+                    currentRow = [];
+                    currentRowSpan = 0;
+                  }
+                }
+                
+                currentRow.push({ article, itemLayout, index });
+                currentRowSpan += colSpan;
+                
+                if (currentRowSpan >= gridMetrics.cols) {
+                  rows.push([...currentRow]);
+                  currentRow = [];
+                  currentRowSpan = 0;
+                }
+              });
+              
+              if (currentRow.length > 0) {
+                rows.push(currentRow);
+              }
+              
+              return rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex w-full relative">
+                  {row.map(({ article, itemLayout, index }, colIndex) => {
+                    const colSpan = itemLayout?.colSpan?.[bp] || 1;
+                    const widthPercentage = (colSpan / gridMetrics.cols) * 100;
+                    
+                    return (
+                      <div
+                        key={article.id}
+                        className="relative"
+                        style={{ width: `${widthPercentage}%` }}
+                      >
+                        <GridItem
+                          article={article}
+                          onReadMore={onReadMore}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          isAdmin={isAdmin}
+                          editingLayout={editingLayout}
+                          itemLayout={itemLayout}
+                          currentBreakpoint={bp}
+                          templateName={selectedTemplate.name}
+                        />
+                        {colIndex < row.length - 1 && (
+                          <div className="absolute top-0 right-0 w-px h-full bg-gray-200 dark:bg-gray-700" />
+                        )}
+                      </div>
+                    );
+                  })}
+                  {rowIndex < rows.length - 1 && (
+                    <div className="absolute bottom-0 left-4 right-4 h-px bg-gray-200 dark:bg-gray-700" />
+                  )}
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </div>

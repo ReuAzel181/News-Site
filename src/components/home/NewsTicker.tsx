@@ -155,7 +155,7 @@ export function NewsTicker() {
     <>
       <style jsx global>{`
         @keyframes ticker-scroll-flat { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .ticker-inner { animation: ticker-scroll-flat 45s linear infinite; will-change: transform; }
+        .ticker-inner { animation: ticker-scroll-flat 75s linear infinite; will-change: transform; }
         .angled-edge { clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 100%, 0 100%); }
       `}</style>
       <div className="bg-gray-300 dark:bg-gray-600 overflow-hidden h-12 flex items-center">
@@ -177,7 +177,7 @@ export function NewsTicker() {
                 {halfItems.map((item, index) => (
                   <div key={`a-${index}`} className="flex items-center">
                     <span className="whitespace-nowrap text-black dark:text-white font-medium text-sm px-8">{item}</span>
-                    <div className="w-1 h-1 bg-black/40 dark:bg-white/40 mx-4 flex-shrink-0" />
+                    <div className="w-px h-6 bg-black/30 dark:bg-white/30 mx-6 flex-shrink-0" />
                   </div>
                 ))}
               </div>
@@ -186,7 +186,7 @@ export function NewsTicker() {
                 {halfItems.map((item, index) => (
                   <div key={`b-${index}`} className="flex items-center">
                     <span className="whitespace-nowrap text-black dark:text-white font-medium text-sm px-8">{item}</span>
-                    <div className="w-1 h-1 bg-black/40 dark:bg-white/40 mx-4 flex-shrink-0" />
+                    <div className="w-px h-6 bg-black/30 dark:bg-white/30 mx-6 flex-shrink-0" />
                   </div>
                 ))}
               </div>

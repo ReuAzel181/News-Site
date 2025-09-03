@@ -1,8 +1,9 @@
 'use client';
 
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
+import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { Article } from '../types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
@@ -141,9 +142,10 @@ interface BusinessSectionProps {
   articles: Article[];
   onReadMore?: (article: Article) => void;
   onEdit?: (article: Article) => void;
+  onDelete?: (articleId: string) => void;
 }
 
-export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectionProps) {
+export function BusinessSection({ articles, onReadMore, onEdit, onDelete }: BusinessSectionProps) {
   const { data: session } = useSession();
   const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   console.log('BusinessSection received articles:', articles.length);
@@ -229,8 +231,7 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
   // Compute responsive grid classes based on editor state
   const gridClass = useMemo(() => {
     return cn(
-      'grid items-start auto-rows-min w-full',
-      editingLayout && showGridLines ? 'gap-1' : 'gap-2',
+      'grid items-start auto-rows-min w-full gap-0',
       COLS_CLASS[gridCols.base],
       gridCols.md ? `md:${COLS_CLASS[gridCols.md]}` : undefined,
       gridCols.lg ? `lg:${COLS_CLASS[gridCols.lg]}` : undefined,
@@ -239,7 +240,7 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
   }, [gridCols, editingLayout, showGridLines]);
 
   // Grid overlay for visual representation
-  const GridOverlay = memo(() => {
+  const GridOverlay = React.memo(() => {
     if (!editingLayout || !showGridLines || !gridRef.current) return null;
     
     const { cols } = gridMetrics;
@@ -284,15 +285,19 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
         <div className="px-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center">
-              <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
-              <h2 className="text-xl font-black uppercase tracking-wide text-left text-deep-blue news-title">Business & Finance</h2>
+              <div
+                className="w-4 h-1 mr-3"
+                style={{ backgroundColor: '#000057' }}
+              ></div>
+              <h2 className="text-xl font-black uppercase tracking-wide text-left text-deep-blue news-title">
+                Business & Finance
+              </h2>
             </div>
             {isAdmin && (
               <button
                 type="button"
-                className="px-4 py-2 text-xs font-medium bg-green-600 text-white border-none shadow-none hover:bg-green-700 transition-colors"
+                className="px-4 py-2 text-xs font-medium bg-green-600 text-white border-none shadow-none"
                 onClick={() => {
-                  // Handle add new business article
                   console.log('Add new business article');
                 }}
                 style={{ borderRadius: '0px' }}
@@ -302,18 +307,22 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
             )}
           </div>
         </div>
-        <div className="w-full h-px bg-gradient-to-r from-gray-400 via-gray-300 to-transparent mt-2"></div>
+        <div className="w-full h-0.5 mt-2 relative overflow-hidden">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t-2 border-solid border-gray-800 dark:border-gray-300"></div>
+          </div>
+        </div>
       </div>
 
       {isAdmin && (
         <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mb-8">
-          <div className="px-6 py-4" style={{backgroundColor: 'var(--card)'}}>
+          <div className="px-6 py-4" style={{ backgroundColor: 'var(--card)' }}>
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold">Layout Editor</span>
               {!editingLayout ? (
                 <button
                   type="button"
-                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none"
                   onClick={startEditing}
                 >
                   Customize Layout
@@ -322,7 +331,7 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none hover:bg-gray-600 transition-colors"
+                    className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none"
                     onClick={cancelEditing}
                   >
                     Cancel
@@ -330,9 +339,9 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
                   <button
                     type="button"
                     className={cn(
-                      'px-4 py-2 text-xs rounded-none border-none shadow-none transition-colors',
+                      'px-4 py-2 text-xs rounded-none border-none shadow-none',
                       hasUnsavedChanges
-                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        ? 'bg-green-600 text-white'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     )}
                     onClick={saveChanges}
@@ -348,85 +357,127 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
               <div className="mt-4 space-y-6">
                 {/* Layout Templates */}
                 <div>
-                  <div className="text-sm font-semibold mb-4 text-gray-800">Choose Your Layout Style</div>
+                  <div className="text-sm font-semibold mb-4 text-gray-800">
+                    Choose Your Layout Style
+                  </div>
                   <div className="w-full -mx-3">
                     <div className="flex flex-wrap gap-3 justify-stretch px-3">
-                      {LAYOUT_TEMPLATES.map(template => {
-                      const isActive = selectedTemplate.name === template.name;
-                      const hasFlexibleLayout = !!template.itemLayouts;
-                      return (
-                        <button
-                          key={template.name}
-                          type="button"
-                          className={cn(
-                            'p-3 text-left rounded-none border-2 shadow-none transition-all duration-200 relative flex-1 min-w-0',
-                            isActive
-                              ? 'border-blue-500 bg-blue-50 text-blue-900'
-                              : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-                          )}
-                          onClick={() => applyTemplate(template)}
-                        >
-                          {isActive && (
-                            <div className="absolute top-2 right-2 w-3 h-3 bg-blue-500 flex items-center justify-center" style={{borderRadius: '0px'}}>
-                  <div className="w-1.5 h-1.5 bg-white" style={{borderRadius: '0px'}}></div>
+                      {LAYOUT_TEMPLATES.map((template) => {
+                        const isActive = selectedTemplate.name === template.name;
+                        const hasFlexibleLayout = !!template.itemLayouts;
+                        return (
+                          <button
+                            key={template.name}
+                            type="button"
+                            className={cn(
+                              'p-3 text-left rounded-none border-2 shadow-none transition-all duration-200 relative flex-1 min-w-0',
+                              isActive
+                                ? 'border-blue-500 bg-blue-50 text-blue-900'
+                                : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                            )}
+                            onClick={() => applyTemplate(template)}
+                          >
+                            {isActive && (
+                              <div
+                                className="absolute top-2 right-2 w-3 h-3 bg-blue-500 flex items-center justify-center"
+                                style={{ borderRadius: '0px' }}
+                              >
+                                <div
+                                  className="w-1.5 h-1.5 bg-white"
+                                  style={{ borderRadius: '0px' }}
+                                ></div>
+                              </div>
+                            )}
+                            <div className="text-sm font-semibold mb-1 mt-2">
+                              {template.name}
                             </div>
-                          )}
-                          <div className="text-sm font-semibold mb-1 mt-2">{template.name}</div>
-                          <div className="text-xs text-gray-600 mb-2 leading-tight line-clamp-2">{template.description}</div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-500">{template.itemCount} articles</span>
-                            <div className="flex gap-1">
-                              {hasFlexibleLayout ? (
-                                <div className="flex items-center gap-1">
-                                  <div className="w-3 h-2 bg-blue-400" style={{borderRadius: '0px'}}></div>
-                  <div className="w-2 h-2 bg-green-400" style={{borderRadius: '0px'}}></div>
-                  <div className="w-1.5 h-2 bg-gray-400" style={{borderRadius: '0px'}}></div>
-                                </div>
-                              ) : (
-                                Object.values(template.config).map((cols, idx) => (
-                                  <div key={idx} className="w-2 h-2 bg-gray-300" style={{borderRadius: '0px'}}></div>
-                                ))
-                              )}
+                            <div className="text-xs text-gray-600 mb-2 leading-tight line-clamp-2">
+                              {template.description}
                             </div>
-                          </div>
-                        </button>
-                      );
-                    })}
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-500">
+                                {template.itemCount} articles
+                              </span>
+                              <div className="flex gap-1">
+                                {hasFlexibleLayout ? (
+                                  <div className="flex items-center gap-1">
+                                    <div
+                                      className="w-3 h-2 bg-blue-400"
+                                      style={{ borderRadius: '0px' }}
+                                    ></div>
+                                    <div
+                                      className="w-2 h-2 bg-green-400"
+                                      style={{ borderRadius: '0px' }}
+                                    ></div>
+                                    <div
+                                      className="w-1.5 h-2 bg-gray-400"
+                                      style={{ borderRadius: '0px' }}
+                                    ></div>
+                                  </div>
+                                ) : (
+                                  Object.values(template.config).map(
+                                    (cols, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="w-2 h-2 bg-gray-300"
+                                        style={{ borderRadius: '0px' }}
+                                      ></div>
+                                    )
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
 
-                {/* Advanced Settings - Hidden for simplified interface */}
-
                 {/* Layout Preview */}
                 <div className="bg-white p-4 rounded-none border border-gray-200">
-                  <div className="text-sm font-semibold mb-3 text-gray-800">Layout Preview</div>
-                  <div className={cn(
-                    'grid gap-1 mb-3',
-                    COLS_CLASS[selectedTemplate.config[bp]]
-                  )}>
+                  <div className="text-sm font-semibold mb-3 text-gray-800">
+                    Layout Preview
+                  </div>
+                  <div
+                    className={cn(
+                      'grid gap-1 mb-3',
+                      COLS_CLASS[selectedTemplate.config[bp]]
+                    )}
+                  >
                     {selectedTemplate.itemLayouts ? (
-                      // Custom layouts with priorities
-                      selectedTemplate.itemLayouts.slice(0, Math.min(selectedTemplate.itemCount, 9)).map((layout, index) => {
-                        const colSpan = layout.colSpan[bp];
-                        return (
-                          <div
-                            key={index}
-                            className={cn(
-                              'h-8 flex items-center justify-center text-xs font-medium',
-                              layout.priority === 'featured' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                              layout.priority === 'compact' ? 'bg-gray-100 text-gray-600 border border-gray-200' :
-                              'bg-green-100 text-green-700 border border-green-200',
-                              COL_SPAN_CLASS[colSpan]
-                            )}
-                          >
-                            {layout.priority === 'featured' ? '⭐' : layout.priority === 'compact' ? '📰' : '📄'}
-                          </div>
-                        );
-                      })
+                      selectedTemplate.itemLayouts
+                        .slice(
+                          0,
+                          Math.min(selectedTemplate.itemCount, 9)
+                        )
+                        .map((layout, index) => {
+                          const colSpan = layout.colSpan[bp];
+                          return (
+                            <div
+                              key={index}
+                              className={cn(
+                                'h-8 flex items-center justify-center text-xs font-medium',
+                                layout.priority === 'featured'
+                                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                                  : layout.priority === 'compact'
+                                  ? 'bg-gray-100 text-gray-600 border border-gray-200'
+                                  : 'bg-green-100 text-green-700 border border-green-200',
+                                COL_SPAN_CLASS[colSpan]
+                              )}
+                            >
+                              {layout.priority === 'featured'
+                                ? '⭐'
+                                : layout.priority === 'compact'
+                                ? '📰'
+                                : '📄'}
+                            </div>
+                          );
+                        })
                     ) : (
-                      // Uniform grid layouts (Balanced Grid, News Feed)
-                      Array.from({ length: Math.min(selectedTemplate.itemCount, 12) }).map((_, index) => (
+                      Array.from({
+                        length: Math.min(selectedTemplate.itemCount, 12),
+                      }).map((_, index) => (
                         <div
                           key={index}
                           className="h-8 flex items-center justify-center text-xs font-medium bg-green-100 text-green-700 border border-green-200"
@@ -458,12 +509,14 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
                       <span className="text-gray-700">Show layout guide</span>
                     </label>
                     <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-none">
-                      {gridMetrics.cols} × {gridMetrics.rows} grid • {gridMetrics.totalItems} articles
+                      {gridMetrics.cols} × {gridMetrics.rows} grid •{' '}
+                      {gridMetrics.totalItems} articles
                     </div>
                   </div>
                   {showGridLines && (
                     <div className="mt-2 text-xs text-gray-500">
-                      💡 The guide shows where each article will appear in your layout
+                      💡 The guide shows where each article will appear in your
+                      layout
                     </div>
                   )}
                 </div>
@@ -473,37 +526,62 @@ export function BusinessSection({ articles, onReadMore, onEdit }: BusinessSectio
         </div>
       )}
 
-      <div className="w-full">
-        <div className="relative">
-          <div ref={gridRef} className={cn(gridClass, 'w-full')}>
-            {businessNews.slice(0, itemCount).map((article, index) => {
-              const itemLayout = selectedTemplate.itemLayouts?.[index];
-              return (
+      <div className="relative w-full">
+        {/* Actual grid */}
+        <div className={`grid gap-6 ${COLS_CLASS[gridMetrics.cols]}`}>
+          {businessNews.slice(0, itemCount).map((article, index) => {
+            const itemLayout = selectedTemplate.itemLayouts?.[index];
+            const colSpan = itemLayout?.colSpan[bp] || 1;
+            return (
+              <div key={article.id} className={`col-span-${colSpan}`}>
                 <GridItem
-                  key={article.id}
                   article={article}
                   onReadMore={onReadMore}
                   onEdit={onEdit}
+                  onDelete={onDelete}
                   isAdmin={isAdmin}
                   editingLayout={editingLayout}
                   itemLayout={itemLayout}
                   currentBreakpoint={bp}
                   templateName={selectedTemplate.name}
                 />
-              );
-            })}
-          </div>
-          <GridOverlay />
+              </div>
+            );
+          })}
         </div>
+
+        {/* Grid overlay lines */}
+        {showGridLines && (
+          <div className="absolute inset-0 pointer-events-none z-50">
+            {/* Vertical lines */}
+            {Array.from({ length: gridMetrics.cols - 1 }).map((_, i) => (
+              <div
+                key={`v-${i}`}
+                className="absolute top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-500"
+                style={{ left: `${((i + 1) / gridMetrics.cols) * 100}%` }}
+              />
+            ))}
+            {/* Horizontal lines */}
+            {Array.from({ length: gridMetrics.rows - 1 }).map((_, i) => (
+              <div
+                key={`h-${i}`}
+                className="absolute left-0 right-0 h-px bg-gray-400 dark:bg-gray-500"
+                style={{ top: `${((i + 1) / gridMetrics.rows) * 100}%` }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
+
 }
 
 interface GridItemProps {
   article: Article;
   onReadMore?: (article: Article) => void;
   onEdit?: (article: Article) => void;
+  onDelete?: (articleId: string) => void;
   isAdmin: boolean;
   editingLayout: boolean;
   itemLayout?: ItemLayout;
@@ -511,7 +589,7 @@ interface GridItemProps {
   templateName: string; // Add template name to differentiate styling
 }
 
-const GridItem = memo(function GridItem({ article, onReadMore, onEdit, isAdmin, editingLayout, itemLayout, currentBreakpoint, templateName }: GridItemProps) {
+const GridItem = React.memo(function GridItem({ article, onReadMore, onEdit, onDelete, isAdmin, editingLayout, itemLayout, currentBreakpoint, templateName }: GridItemProps) {
 
   const handleReadMore = useCallback(() => {
     onReadMore?.(article);
@@ -568,26 +646,38 @@ const GridItem = memo(function GridItem({ article, onReadMore, onEdit, isAdmin, 
   return (
     <div 
       className={cn(
-        'cursor-pointer',
+        'transition-none',
         colSpanClasses,
         editingLayout && 'ring-1 ring-gray-200 ring-inset'
       )} 
       onClick={handleReadMore}
     >
-      {isAdmin && onEdit && (
-        <div className="w-full flex justify-end mb-2">
-          <button
-            type="button"
-            className="px-2 py-1 text-xs font-semibold bg-black text-white rounded-none shadow-none border-none"
-            onClick={handleEdit}
-            aria-label={`Edit ${article.title}`}
-          >
-            Edit
-          </button>
+      {isAdmin && (onEdit || onDelete) && (
+        <div className="w-full flex justify-end gap-2 mb-2">
+          {onEdit && (
+            <button
+              type="button"
+              className="px-4 py-2 text-sm font-semibold bg-black text-white rounded-none shadow-none border-none transition-none"
+              onClick={handleEdit}
+              aria-label={`Edit ${article.title}`}
+            >
+              Edit
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              className="px-4 py-2 text-sm font-semibold bg-red-600 text-white rounded-none shadow-none border-none transition-none"
+              onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
+              aria-label={`Remove ${article.title}`}
+            >
+              Remove
+            </button>
+          )}
         </div>
       )}
       <div className={cn(
-        'flex flex-col rounded-none shadow-none ring-0 outline-none border-none',
+        'flex flex-col rounded-none shadow-none ring-0 outline-none',
         // Optimized template-specific padding - reduced for better space utilization
         templateName === 'Editorial Focus' ? (
           itemLayout?.priority === 'featured' ? 'p-4' : itemLayout?.priority === 'compact' ? 'p-2' : 'p-3'
@@ -596,7 +686,8 @@ const GridItem = memo(function GridItem({ article, onReadMore, onEdit, isAdmin, 
         ) : (
           itemLayout?.priority === 'featured' ? 'p-3' : itemLayout?.priority === 'compact' ? 'p-1.5' : 'p-2'
         ),
-      )} style={{backgroundColor: 'var(--card)'}}>
+        "bg-white dark:bg-gray-900"
+      )}>
         {/* Removed all borders and dividers for flat design */}
         <div className={cn(
           'relative w-full rounded-none',
@@ -645,7 +736,7 @@ const GridItem = memo(function GridItem({ article, onReadMore, onEdit, isAdmin, 
           </h3>
           {itemLayout?.priority !== 'compact' && (
             <p className={cn(
-              'news-content',
+              'news-content text-gray-500 font-sans',
               priorityStyles.excerptLines,
               itemLayout?.priority === 'featured' ? 'text-sm' : 'text-xs'
             )}>

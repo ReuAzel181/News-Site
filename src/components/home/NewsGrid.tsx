@@ -224,6 +224,20 @@ const NewsGrid: React.FC = () => {
     }
   };
 
+  const handleDelete = (articleId: string) => {
+    if (session?.user && (session as Session).user?.role === 'ADMIN') {
+      setNewsArticles(prev => prev.filter(a => a.id !== articleId));
+      if (selectedArticle && selectedArticle.id === articleId) {
+        setIsModalOpen(false);
+        setSelectedArticle(null);
+      }
+      if (editingArticle && editingArticle.id === articleId) {
+        setIsEditOpen(false);
+        setEditingArticle(null);
+      }
+    }
+  };
+
 
 
   if (loading) {
@@ -289,10 +303,10 @@ const NewsGrid: React.FC = () => {
 
 
         <BreakingNewsSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onEditBreaking={handleEditBreaking} />
-        <BusinessSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
-        <TechnologySection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
-        <SportsSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
-        <LifestyleSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} />
+        <BusinessSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onDelete={handleDelete} />
+        <TechnologySection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onDelete={handleDelete} />
+        <SportsSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onDelete={handleDelete} />
+        <LifestyleSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onDelete={handleDelete} />
         <FeaturedVideosSection 
           videos={videos} 
           isAdmin={session?.user && (session as Session).user?.role === 'ADMIN'}

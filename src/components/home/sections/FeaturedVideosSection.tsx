@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { cn } from '@/utils/cn';
 
 type Breakpoint = 'base' | 'md' | 'lg' | 'xl';
@@ -204,9 +205,13 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
   // Grid metrics calculation
   const gridMetrics = useMemo(() => {
     const config = selectedTemplate.config;
+    const cols = config[currentBreakpoint];
+    const totalItems = Math.min(itemCount, videos.length);
+    const rows = Math.ceil(totalItems / cols);
     return {
-      cols: config[currentBreakpoint],
-      totalItems: Math.min(itemCount, videos.length)
+      cols,
+      rows,
+      totalItems
     };
   }, [selectedTemplate, currentBreakpoint, itemCount, videos.length]);
 
@@ -299,7 +304,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
               {isAdmin && (
                 <button
                   type="button"
-                  className="px-4 py-2 text-xs font-medium bg-orange-600 text-white border-none"
+                  className="px-4 py-2 text-xs font-medium bg-orange-600 text-white border-none rounded-none shadow-none"
                   onClick={() => {
                     // Create a new video object with placeholder data
                     const newVideo: Video = {
@@ -326,7 +331,6 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
                       alert('Video created successfully! However, no add handler is configured. Please contact your administrator to enable video adding functionality.');
                     }
                   }}
-                  style={{ borderRadius: '0px' }}
                   title="Add a new video to the featured videos section"
                 >
                   Add New Video
@@ -365,7 +369,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
                           type="checkbox"
                           checked={showGridLines}
                           onChange={(e) => setShowGridLines(e.target.checked)}
-                          style={{borderRadius: '0px'}}
+                          className="rounded-none"
                         />
                         <span>Show grid overlay</span>
                       </label>
@@ -376,17 +380,15 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
                       )}
                       <button
                         type="button"
-                        className="px-3 py-1 text-xs border border-gray-300"
+                        className="px-3 py-1 text-xs border border-gray-300 rounded-none shadow-none"
                         onClick={cancelEditing}
-                        style={{ borderRadius: '0px' }}
                       >
                         Cancel
                       </button>
                       <button
                         type="button"
-                        className="px-3 py-1 text-xs bg-blue-600 text-white"
+                        className="px-3 py-1 text-xs bg-blue-600 text-white rounded-none shadow-none"
                         onClick={saveChanges}
-                        style={{ borderRadius: '0px' }}
                       >
                         Save Changes
                       </button>
@@ -407,14 +409,14 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
                                 'p-3 text-left border-2 relative flex-1 min-w-0',
                                 isActive
                                   ? 'border-blue-500 bg-blue-50 text-blue-900'
-                                  : 'border-gray-200 bg-white'
+                                  : 'border-gray-200 bg-white',
+                                'rounded-none shadow-none'
                               )}
-                              style={{ borderRadius: '0px', boxShadow: 'none' }}
                               onClick={() => applyTemplate(template)}
                             >
                               {isActive && (
-                                <div className="absolute top-2 right-2 w-3 h-3 bg-blue-500 flex items-center justify-center" style={{borderRadius: '0px'}}>
-                  <div className="w-1.5 h-1.5 bg-white" style={{borderRadius: '0px'}}></div>
+                                <div className="absolute top-2 right-2 w-3 h-3 bg-blue-500 flex items-center justify-center rounded-none">
+                  <div className="w-1.5 h-1.5 bg-white rounded-none"></div>
                                 </div>
                               )}
                               <div className="text-sm font-semibold mb-1 mt-2">{template.name}</div>
@@ -422,7 +424,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
                               <div className="flex items-center justify-between text-xs">
                                 <span className="text-gray-500">Grid: {template.config.base}/{template.config.md}/{template.config.lg}/{template.config.xl}</span>
                                 {hasFlexibleLayout && (
-                                  <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 text-xs font-medium" style={{borderRadius: '0px'}}>Video Layout</span>
+                                  <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 text-xs font-medium rounded-none">Video Layout</span>
                                 )}
                               </div>
                             </button>
@@ -439,25 +441,75 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
 
         <div className="pt-8 px-6 pb-8">
           <div className="relative">
-            <div className={cn('grid gap-8', gridClasses)}>
-              {displayVideos.map((video, index) => {
-                const itemLayout = activeTemplate.itemLayouts?.[index];
-                return (
-                  <VideoItem
-                    key={video.id}
-                    video={video}
-                    onEdit={onEdit}
-                    isAdmin={isAdmin}
-                    editingLayout={editingLayout}
-                    itemLayout={itemLayout}
-                    currentBreakpoint={currentBreakpoint}
-                    templateName={activeTemplate.name}
-                    index={index}
-                  />
-                );
-              })}
+            <div className="w-full relative flex flex-col">
+              {(() => {
+                const videos = displayVideos;
+                const rows: Array<Array<{ video: Video; itemLayout?: ItemLayout; index: number }>> = [];
+                let currentRow: Array<{ video: Video; itemLayout?: ItemLayout; index: number }> = [];
+                let currentRowSpan = 0;
+                
+                videos.forEach((video, index) => {
+                  const itemLayout = activeTemplate.itemLayouts?.[index];
+                  const colSpan = itemLayout?.colSpan?.[currentBreakpoint] || 1;
+                  
+                  if (currentRowSpan + colSpan > gridMetrics.cols) {
+                    if (currentRow.length > 0) {
+                      rows.push([...currentRow]);
+                      currentRow = [];
+                      currentRowSpan = 0;
+                    }
+                  }
+                  
+                  currentRow.push({ video, itemLayout, index });
+                  currentRowSpan += colSpan;
+                  
+                  if (currentRowSpan >= gridMetrics.cols) {
+                    rows.push([...currentRow]);
+                    currentRow = [];
+                    currentRowSpan = 0;
+                  }
+                });
+                
+                if (currentRow.length > 0) {
+                  rows.push(currentRow);
+                }
+                
+                return rows.map((row, rowIndex) => (
+                  <div key={rowIndex} className="flex w-full relative">
+                    {row.map(({ video, itemLayout, index }, colIndex) => {
+                      const colSpan = itemLayout?.colSpan?.[currentBreakpoint] || 1;
+                      const widthPercentage = (colSpan / gridMetrics.cols) * 100;
+                      
+                      return (
+                        <div
+                          key={video.id}
+                          className="relative"
+                          style={{ width: `${widthPercentage}%` }}
+                        >
+                          <VideoItem
+                            video={video}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            isAdmin={isAdmin}
+                            editingLayout={editingLayout}
+                            itemLayout={itemLayout}
+                            currentBreakpoint={currentBreakpoint}
+                            templateName={activeTemplate.name}
+                            index={index}
+                          />
+                          {colIndex < row.length - 1 && (
+                            <div className="absolute top-0 right-0 w-px h-full bg-gray-200 dark:bg-gray-700" />
+                          )}
+                        </div>
+                      );
+                    })}
+                    {rowIndex < rows.length - 1 && (
+                      <div className="absolute bottom-0 left-4 right-4 h-px bg-gray-200 dark:bg-gray-700" />
+                    )}
+                  </div>
+                ));
+              })()}
             </div>
-            <GridOverlay />
           </div>
         </div>
       </div>
@@ -468,6 +520,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
   function VideoItem({
     video,
     onEdit,
+    onDelete,
     isAdmin,
     editingLayout,
     itemLayout,
@@ -477,6 +530,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
   }: {
     video: Video;
     onEdit?: (video: Video) => void;
+    onDelete?: (videoId: string) => void;
     isAdmin: boolean;
     editingLayout: boolean;
     itemLayout?: ItemLayout;
@@ -504,29 +558,39 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
            'h-full',
            colSpanClasses
          )}>
-        {isAdmin && onEdit && (
-          <div className="w-full flex justify-end mb-2">
-            <button
-              type="button"
-              className="px-2 py-1 text-xs font-semibold bg-black text-white"
-              onClick={(e) => { e.stopPropagation(); onEdit(video); }}
-              aria-label={`Edit ${video.title}`}
-              style={{ borderRadius: '0px' }}
-            >
-              Edit
-            </button>
+        {isAdmin && (onEdit || onDelete) && (
+          <div className="w-full flex justify-end gap-2 mb-2">
+            {onEdit && (
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-semibold bg-blue-600 text-white transition-none"
+                onClick={(e) => { e.stopPropagation(); onEdit(video); }}
+                aria-label={`Edit ${video.title}`}
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-semibold bg-red-600 text-white transition-none"
+                onClick={(e) => { e.stopPropagation(); onDelete(video.id); }}
+                aria-label={`Remove ${video.title}`}
+              >
+                Remove
+              </button>
+            )}
           </div>
         )}
-        <div className="space-y-3 p-6 h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
+        <div className="space-y-3 p-6 h-full flex flex-col rounded-none shadow-none ring-0 outline-none transition-none bg-white dark:bg-gray-900">
           <div className={cn(
-            'relative w-full bg-gray-200',
+            'relative w-full bg-gray-200 rounded-none',
             isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'
           )}>
             <iframe
               src={`https://www.youtube.com/embed/${video.videoId}`}
               title={video.title}
-              className="w-full h-full"
-              style={{borderRadius: '0px'}}
+              className="w-full h-full rounded-none"
               allowFullScreen
             />
           </div>
@@ -540,7 +604,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
               </h3>
               {!isCompact && (
                 <p className={cn(
-                  'text-gray-600 mb-3 line-clamp-3',
+                  'text-gray-500 font-sans mb-3 line-clamp-3',
                   isFeatured ? 'text-base' : 'text-sm'
                 )}>
                   {video.description}
@@ -548,7 +612,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
               )}
             </div>
             <div className="flex items-center justify-between text-xs text-gray-500">
-              <span className="bg-red-100 text-red-800 px-2 py-1 text-xs font-medium" style={{borderRadius: '0px'}}>
+              <span className="bg-red-100 text-red-800 px-2 py-1 text-xs font-medium rounded-none">
                 {video.channel}
               </span>
               <div className="flex items-center space-x-2">

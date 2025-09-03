@@ -409,7 +409,7 @@ export function HeroSection() {
                     {/* Image preview */}
                     <div className="relative w-full overflow-hidden bg-gray-200" style={{ aspectRatio: '16/9' }}>
                       {s.imageUrl ? (
-                        <ProgressiveImage src={s.imageUrl} alt={s.title} fill className="object-contain" />
+                        <ProgressiveImage src={s.imageUrl} alt={s.title} fill className="object-cover" />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-xs select-none">No image</div>
                       )}

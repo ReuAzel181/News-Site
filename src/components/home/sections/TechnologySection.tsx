@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
+import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { Article } from '../types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
@@ -118,11 +119,12 @@ const COL_SPAN_CLASS: Record<number, string> = {
 
 interface TechnologySectionProps {
   articles: Article[];
-  onReadMore: (article: Article) => void;
+  onReadMore?: (article: Article) => void;
   onEdit?: (article: Article) => void;
+  onDelete?: (articleId: string) => void;
 }
 
-export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySectionProps) {
+export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: TechnologySectionProps) {
   const { data: session } = useSession();
   const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   console.log('TechnologySection received articles:', articles.length);
@@ -204,7 +206,7 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
   // Compute responsive grid classes based on editor state
   const gridClass = useMemo(() => {
     return cn(
-      'grid items-start auto-rows-min w-full gap-2',
+      'grid items-stretch w-full',
       COLS_CLASS[gridCols.base],
       gridCols.md ? `md:${COLS_CLASS[gridCols.md]}` : undefined,
       gridCols.lg ? `lg:${COLS_CLASS[gridCols.lg]}` : undefined,
@@ -219,6 +221,7 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
     article: Article;
     onReadMore?: (article: Article) => void;
     onEdit?: (article: Article) => void;
+    onDelete?: (articleId: string) => void;
     isAdmin: boolean;
     editingLayout: boolean;
     itemLayout?: ItemLayout;
@@ -227,30 +230,42 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
   }
 
   // GridItem component for individual article rendering
-  const GridItem = ({ article, onReadMore, onEdit, isAdmin, editingLayout, itemLayout, currentBreakpoint, templateName }: GridItemProps) => {
+  const GridItem = ({ article, onReadMore, onEdit, onDelete, isAdmin, editingLayout, itemLayout, currentBreakpoint, templateName, index, totalItems }: GridItemProps & { index: number; totalItems: number }) => {
     const colSpanClass = itemLayout ? COL_SPAN_CLASS[itemLayout.colSpan[currentBreakpoint]] : '';
     const isFeatured = itemLayout?.priority === 'featured';
     const isCompact = itemLayout?.priority === 'compact';
     
     return (
       <div className={cn(
-        'cursor-pointer h-full',
+        'h-full transition-none',
         colSpanClass,
         editingLayout && 'ring-1 ring-blue-200 ring-opacity-50'
       )} onClick={() => onReadMore?.(article)}>
-        {isAdmin && onEdit && !editingLayout && (
-          <div className="w-full flex justify-end mb-2">
-            <button
-              type="button"
-              className="px-2 py-1 text-xs font-semibold bg-black text-white"
-              onClick={(e) => { e.stopPropagation(); onEdit(article); }}
-              aria-label={`Edit ${article.title}`}
-            >
-              Edit
-            </button>
+        {isAdmin && (onEdit || onDelete) && !editingLayout && (
+          <div className="w-full flex justify-end gap-2 mb-2">
+            {onEdit && (
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-semibold bg-blue-600 text-white rounded-none shadow-none border-none transition-none"
+                onClick={(e) => { e.stopPropagation(); onEdit(article); }}
+                aria-label={`Edit ${article.title}`}
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-semibold bg-red-600 text-white rounded-none shadow-none border-none transition-none"
+                onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
+                aria-label={`Remove ${article.title}`}
+              >
+                Remove
+              </button>
+            )}
           </div>
         )}
-        <div className="space-y-3 p-6 h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
+        <div className="space-y-3 p-6 h-full flex flex-col bg-white dark:bg-gray-900">
           <div className={cn(
             'relative w-full',
             isFeatured ? 'aspect-[16/10]' : isCompact ? 'aspect-[4/3]' : 'aspect-[4/3]'
@@ -277,7 +292,7 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
               {article.title}
             </h3>
             <p className={cn(
-              'line-clamp-2 news-content',
+              'line-clamp-2 news-content text-gray-500 font-sans',
               isFeatured ? 'text-sm' : 'text-xs'
             )}>
               {article.excerpt}
@@ -303,7 +318,7 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
             {isAdmin && (
               <button
                 type="button"
-                className="px-4 py-2 text-xs font-medium bg-purple-600 text-white border-none shadow-none hover:bg-purple-700 transition-colors"
+                className="px-4 py-2 text-xs font-medium bg-purple-600 text-white border-none shadow-none"
                 onClick={() => {
                   // Handle add new technology article
                   console.log('Add new technology article');
@@ -315,7 +330,11 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
             )}
           </div>
         </div>
-        <div className="w-full h-px bg-gradient-to-r from-gray-400 via-gray-300 to-transparent mt-2"></div>
+        <div className="w-full h-0.5 mt-2 relative overflow-hidden">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t-2 border-solid border-gray-800 dark:border-gray-300"></div>
+          </div>
+        </div>
       </div>
 
       {isAdmin && (
@@ -326,7 +345,7 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
               {!editingLayout ? (
                 <button
                   type="button"
-                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none"
                   onClick={startEditing}
                 >
                   Customize Layout
@@ -335,7 +354,7 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none hover:bg-gray-600 transition-colors"
+                    className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none"
                     onClick={cancelEditing}
                   >
                     Cancel
@@ -343,9 +362,9 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
                   <button
                     type="button"
                     className={cn(
-                      'px-4 py-2 text-xs rounded-none border-none shadow-none transition-colors',
+                      'px-4 py-2 text-xs rounded-none border-none shadow-none',
                       hasUnsavedChanges
-                        ? 'bg-green-600 text-white hover:bg-green-700'
+                        ? 'bg-green-600 text-white'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     )}
                     onClick={saveChanges}
@@ -471,26 +490,55 @@ export function TechnologySection({ articles, onReadMore, onEdit }: TechnologySe
       )}
 
       <div className="w-full">
-        <div className="relative">
-          <div ref={gridRef} className={cn(gridClass, 'w-full')}>
-            {techNews.slice(0, itemCount).map((article, index) => {
-              const itemLayout = selectedTemplate.itemLayouts?.[index];
-              return (
-                <GridItem
-                  key={article.id}
-                  article={article}
-                  onReadMore={onReadMore}
-                  onEdit={onEdit}
-                  isAdmin={isAdmin}
-                  editingLayout={editingLayout}
-                  itemLayout={itemLayout}
-                  currentBreakpoint={bp}
-                  templateName={selectedTemplate.name}
-                />
-              );
-            })}
-          </div>
+        <div className="flex flex-col">
+          {(() => {
+            const cols = gridMetrics.cols;
+            const totalItems = Math.min(techNews.length, itemCount);
+            const rows = [];
+            
+            // Split articles into rows
+            for (let i = 0; i < totalItems; i += cols) {
+              rows.push(techNews.slice(i, i + cols));
+            }
+            
+            return rows.map((row, rowIndex) => (
+              <React.Fragment key={rowIndex}>
+                <div className="flex">
+                  {row.map((article, colIndex) => {
+                    const index = rowIndex * cols + colIndex;
+                    return (
+                      <React.Fragment key={article.id}>
+                        <div className="flex-1">
+                          <GridItem
+                            article={article}
+                            onReadMore={onReadMore}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            isAdmin={isAdmin}
+                            editingLayout={editingLayout}
+                            itemLayout={selectedTemplate.itemLayouts?.[index]}
+                            currentBreakpoint={bp}
+                            templateName={selectedTemplate.name}
+                            index={index}
+                            totalItems={totalItems}
+                          />
+                        </div>
+                        {/* Vertical separator line between columns */}
+                        {colIndex < row.length - 1 && (
+                          <div className="w-px bg-gray-400 dark:bg-gray-500 flex-shrink-0" />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+                {/* Horizontal separator line between rows */}
+                {rowIndex < rows.length - 1 && (
+                  <hr className="my-4 border-0 border-t border-gray-400 dark:border-gray-500 w-full" />
+                )}
 
+              </React.Fragment>
+            ));
+          })()}
         </div>
       </div>
     </div>

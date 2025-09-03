@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
+import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { Article } from '../types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
@@ -119,9 +120,10 @@ interface BreakingNewsSectionProps {
   onReadMore?: (article: Article) => void;
   onEdit?: (article: Article) => void;
   onEditBreaking?: (article: Article) => void;
+  onDelete?: (articleId: string) => void;
 }
 
-export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaking }: BreakingNewsSectionProps) {
+export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaking, onDelete }: BreakingNewsSectionProps) {
   const { data: session } = useSession();
   const isAdmin = !!session?.user && session.user.role === 'ADMIN';
   
@@ -272,7 +274,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
               {isAdmin && (
                 <button
                   type="button"
-                  className="px-4 py-2 text-xs font-medium bg-red-600 text-white border-none shadow-none hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 text-xs font-medium bg-red-600 text-white border-none shadow-none"
                   onClick={() => {
                     // Handle add new breaking news
                     console.log('Add new breaking news article');
@@ -284,7 +286,11 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
               )}
             </div>
           </div>
-          <div className="w-full h-px bg-gradient-to-r from-gray-400 via-gray-300 to-transparent mt-2"></div>
+          <div className="w-full h-0.5 mt-2 relative overflow-hidden">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t-2 border-solid border-gray-800 dark:border-gray-300"></div>
+            </div>
+          </div>
         </div>
 
         {isAdmin && (
@@ -295,7 +301,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
                 {!editingLayout ? (
                   <button
                     type="button"
-                    className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none"
                     onClick={startEditing}
                   >
                     Customize Layout
@@ -304,7 +310,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none hover:bg-gray-600 transition-colors"
+                      className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none"
                       onClick={cancelEditing}
                     >
                       Cancel
@@ -312,9 +318,9 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
                     <button
                       type="button"
                       className={cn(
-                        'px-4 py-2 text-xs rounded-none border-none shadow-none transition-colors',
+                        'px-4 py-2 text-xs rounded-none border-none shadow-none',
                         hasUnsavedChanges
-                          ? 'bg-green-600 text-white hover:bg-green-700'
+                          ? 'bg-green-600 text-white'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       )}
                       onClick={saveChanges}
@@ -455,26 +461,72 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
 
         <div className="pt-8 px-6 pb-8">
           <div className="relative">
-            <div className={cn('grid gap-8 max-h-[650px] overflow-hidden', gridClasses)}>
-              {displayArticles.map((article, index) => {
-                const itemLayout = activeTemplate.itemLayouts?.[index];
-                return (
-                  <GridItem
-                    key={article.id}
-                    article={article}
-                    onReadMore={onReadMore}
-                    onEdit={onEdit}
-                    onEditBreaking={onEditBreaking}
-                    isAdmin={isAdmin}
-                    editingLayout={editingLayout}
-                    itemLayout={itemLayout}
-                    currentBreakpoint={currentBreakpoint}
-                    index={index}
-                  />
-                );
-              })}
-            </div>
-            <GridOverlay />
+            {(() => {
+              const cols = gridMetrics.cols;
+              const rows = Math.ceil(displayArticles.length / cols);
+              const newsRows: Article[][] = [];
+              
+              // Split articles into rows
+              for (let i = 0; i < rows; i++) {
+                const rowArticles = displayArticles.slice(i * cols, (i + 1) * cols);
+                if (rowArticles.length > 0) {
+                  newsRows.push(rowArticles);
+                }
+              }
+              
+              return (
+                <div className="grid gap-x-6 gap-y-6 relative"> 
+                  {newsRows.map((rowArticles, rowIndex) => (
+                    <React.Fragment key={rowIndex}>
+                      {rowArticles.map((article, colIndex) => {
+                        const articleIndex = rowIndex * cols + colIndex;
+                        const itemLayout = activeTemplate.itemLayouts?.[articleIndex];
+                        const colSpan = itemLayout?.colSpan[currentBreakpoint] || 1;
+
+                        return (
+                          <div key={article.id} className={`col-span-${colSpan} relative`}>
+                            <GridItem
+                              article={article}
+                              onReadMore={onReadMore}
+                              onEdit={onEdit}
+                              onEditBreaking={onEditBreaking}
+                              onDelete={onDelete}
+                              isAdmin={isAdmin}
+                              editingLayout={editingLayout}
+                              itemLayout={itemLayout}
+                              currentBreakpoint={currentBreakpoint}
+                              index={articleIndex}
+                            />
+                          </div>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+
+                  {/* Overlay separators */}
+                  {showGridLines && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      {/* Vertical grid lines */}
+                      {Array.from({ length: cols - 1 }).map((_, i) => (
+                        <div
+                          key={`v-${i}`}
+                          className="absolute top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-500"
+                          style={{ left: `${((i + 1) / cols) * 100}%` }}
+                        />
+                      ))}
+                      {/* Horizontal grid lines */}
+                      {Array.from({ length: gridMetrics.rows - 1 }).map((_, i) => (
+                        <div
+                          key={`h-${i}`}
+                          className="absolute left-0 right-0 h-px bg-gray-400 dark:bg-gray-500"
+                          style={{ top: `${((i + 1) / gridMetrics.rows) * 100}%` }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -487,6 +539,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
     onReadMore,
     onEdit,
     onEditBreaking,
+    onDelete,
     isAdmin,
     editingLayout: _editingLayout,
     itemLayout,
@@ -497,6 +550,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
     onReadMore?: (article: Article) => void;
     onEdit?: (article: Article) => void;
     onEditBreaking?: (article: Article) => void;
+    onDelete?: (articleId: string) => void;
     isAdmin: boolean;
     editingLayout: boolean;
     itemLayout?: ItemLayout;
@@ -521,24 +575,36 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
     return (
       <div 
         className={cn(
-          'cursor-pointer h-full',
+          'h-full transition-none',
           colSpanClasses
         )} 
         onClick={() => onReadMore?.(article)}
       >
-        {isAdmin && onEdit && (
-          <div className="w-full flex justify-end mb-2">
-            <button
-              type="button"
-              className="px-2 py-1 text-xs font-semibold bg-black text-white"
-              onClick={(e) => { e.stopPropagation(); (onEditBreaking ?? onEdit)(article); }}
-              aria-label={`Edit ${article.title}`}
-            >
-              Edit
-            </button>
+        {isAdmin && (onEdit || onDelete) && (
+          <div className="w-full flex justify-end gap-2 mb-2">
+            {onEdit && (
+              <button
+                type="button"
+                className="px-2 py-1 text-xs font-semibold bg-black text-white"
+                onClick={(e) => { e.stopPropagation(); (onEditBreaking ?? onEdit)(article); }}
+                aria-label={`Edit ${article.title}`}
+              >
+                Edit
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                className="px-2 py-1 text-xs font-semibold bg-red-600 text-white hover:bg-red-700"
+                onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
+                aria-label={`Delete ${article.title}`}
+              >
+                Delete
+              </button>
+            )}
           </div>
         )}
-        <div className="space-y-3 p-6 h-full flex flex-col" style={{backgroundColor: 'var(--card)'}}>
+        <div className="space-y-3 p-6 h-full flex flex-col bg-white dark:bg-gray-900">
           <div className={cn(
             'relative w-full rounded-none',
             isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'
@@ -560,7 +626,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
               </h3>
               {!isCompact && (
                 <p className={cn(
-                  'text-gray-600 mb-3 line-clamp-3 rounded-none',
+                  'text-gray-500 font-sans mb-3 line-clamp-3 rounded-none',
                   isFeatured ? 'text-base' : 'text-sm'
                 )}>
                   {article.excerpt}

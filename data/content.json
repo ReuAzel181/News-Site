@@ -56,6 +56,28 @@
         "technology",
         "earnings"
       ]
+    },
+    "mock-tech-5": {
+      "title": "Virtual Reality Transforms Educational Experiences",
+      "excerpt": "Immersive VR technology revolutionizes classroom learning with interactive simulations and virtual field trips to historical sites. Students can now explore ancient Rome, conduct virtual chemistry experiments, and practice surgical procedures in risk-free environments. Over 500 schools have reported 40% improvement in student engagement and 25% better retention rates using VR-enhanced curricula.",
+      "content": "Educational institutions are embracing virtual reality to create engaging learning environments that transcend traditional classroom limitations, allowing students to experience historical events firsthand and manipulate complex scientific concepts in three-dimensional space. The technology has proven particularly effective in STEM education, where abstract concepts become tangible through immersive visualization. Major educational publishers are investing heavily in VR content development, with the market expected to reach $13 billion by 2025.",
+      "imageUrl": "https://images.unsplash.com/photo-1592478411213-6153e4ebc696?w=1200&h=800&fit=crop&q=80",
+      "tags": [
+        "technology",
+        "vr",
+        "education"
+      ]
+    },
+    "mock-tech-4": {
+      "title": "Cybersecurity Advances Combat Rising Digital Threats",
+      "excerpt": "Next-generation security protocols and AI-powered threat detection systems provide enhanced protection against sophisticated cyber attacks. Zero-trust architecture implementations have reduced successful breaches by 78% across enterprise networks. Machine learning algorithms now identify and neutralize threats 15 times faster than traditional signature-based systems, adapting to new attack vectors in real-time.",
+      "content": "The cybersecurity landscape continues to evolve with innovative defense mechanisms that leverage artificial intelligence and behavioral analysis to stay ahead of increasingly sophisticated threat actors. Organizations are implementing comprehensive security frameworks that assume no implicit trust and verify every transaction. Government agencies and private sector leaders are collaborating on new standards that will define cybersecurity best practices for the next decade.",
+      "imageUrl": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&h=800&fit=crop&q=80",
+      "tags": [
+        "technology",
+        "cybersecurity",
+        "ai"
+      ]
     }
   },
   "heroSlides": [

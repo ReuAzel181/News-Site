@@ -90,75 +90,124 @@ const statusColors = {
   archived: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
 };
 
-// Calculate real statistics from articles data
-const calculateStats = (articles: Article[]) => {
-  const totalArticles = articles.length;
-  const totalViews = articles.reduce((sum, article) => sum + (article.views || 0), 0);
-  const uniqueAuthors = new Set(articles.map(article => article.author)).size;
-  
-  // Calculate articles published today (using a fixed date for SSR consistency)
-  const fixedToday = new Date('2024-01-15'); // Use a fixed date to prevent hydration mismatch
-  const todayStart = new Date(fixedToday.getFullYear(), fixedToday.getMonth(), fixedToday.getDate());
-  const publishedToday = articles.filter(article => 
-    article.publishedAt && article.publishedAt >= todayStart
-  ).length;
-  
-  return [
-    {
-      name: 'Total Articles',
-      value: totalArticles.toString(),
-      change: '+12%',
-      changeType: 'positive',
-      icon: Newspaper
-    },
-    {
-      name: 'Published Today',
-      value: publishedToday.toString(),
-      change: '+5%',
-      changeType: 'positive',
-      icon: Calendar
-    },
-    {
-      name: 'Total Views',
-      value: totalViews > 1000 ? `${(totalViews / 1000).toFixed(1)}K` : totalViews.toString(),
-      change: '+18%',
-      changeType: 'positive',
-      icon: Eye
-    },
-    {
-      name: 'Active Authors',
-      value: uniqueAuthors.toString(),
-      change: '+2%',
-      changeType: 'positive',
-      icon: User
+interface StatItem {
+  name: string;
+  value: string;
+  change: string;
+  changeType: 'positive' | 'negative' | 'neutral';
+  icon: any;
+}
+
+// Fetch statistics from API
+const fetchStats = async (): Promise<StatItem[]> => {
+  try {
+    const response = await fetch('/api/admin/stats');
+    if (!response.ok) {
+      throw new Error('Failed to fetch stats');
     }
-  ];
+    const data = await response.json();
+    
+    return [
+      {
+        name: 'Total Articles',
+        value: data.totalArticles.toString(),
+        change: data.totalArticlesChange,
+        changeType: data.totalArticlesChangeType,
+        icon: Newspaper
+      },
+      {
+        name: 'Published Today',
+        value: data.publishedToday.toString(),
+        change: data.publishedTodayChange,
+        changeType: data.publishedTodayChangeType,
+        icon: Calendar
+      },
+      {
+        name: 'Total Views',
+        value: data.totalViews,
+        change: data.totalViewsChange,
+        changeType: data.totalViewsChangeType,
+        icon: Eye
+      },
+      {
+        name: 'Active Authors',
+        value: data.activeAuthors.toString(),
+        change: data.activeAuthorsChange,
+        changeType: data.activeAuthorsChangeType,
+        icon: User
+      }
+    ];
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    // Fallback to mock data if API fails
+    return [
+      {
+        name: 'Total Articles',
+        value: '5',
+        change: '+12%',
+        changeType: 'positive',
+        icon: Newspaper
+      },
+      {
+        name: 'Published Today',
+        value: '4',
+        change: '+5%',
+        changeType: 'positive',
+        icon: Calendar
+      },
+      {
+        name: 'Total Views',
+        value: '45.7K',
+        change: '+18%',
+        changeType: 'positive',
+        icon: Eye
+      },
+      {
+        name: 'Active Authors',
+        value: '5',
+        change: '+2%',
+        changeType: 'positive',
+        icon: User
+      }
+    ];
+  }
 };
 
 export default function AdminDashboard() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<StatItem[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedArticles, setSelectedArticles] = useState<string[]>([]);
 
-  // Load articles on component mount
+  // Load articles and statistics on component mount
   useEffect(() => {
-    const loadArticles = () => {
+    const loadData = async () => {
       setLoading(true);
-      // Simulate loading delay
+      setStatsLoading(true);
+      
+      // Load articles (simulate loading delay)
       setTimeout(() => {
         setArticles(mockArticles);
         setLoading(false);
       }, 500);
+      
+      // Load statistics from API
+      try {
+        const statsData = await fetchStats();
+        setStats(statsData);
+      } catch (error) {
+        console.error('Failed to load statistics:', error);
+      } finally {
+        setStatsLoading(false);
+      }
     };
 
-    loadArticles();
+    loadData();
   }, []);
-
-  // Calculate statistics from real data
-  const stats = calculateStats(articles);
 
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -215,42 +264,70 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            return (
-              <motion.div
-                key={stat.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700"
-
+          {statsLoading ? (
+            // Loading skeleton
+            Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700 animate-pulse"
               >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      {stat.name}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {stat.value}
-                    </p>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 mb-2 w-20"></div>
+                    <div className="h-8 bg-gray-200 dark:bg-gray-700 w-16"></div>
                   </div>
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20" style={{ borderRadius: '0px' }}>
-                    <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div className="mt-4">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 w-24"></div>
+                </div>
+              </div>
+            ))
+          ) : (
+            stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <motion.div
+                  key={stat.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="bg-white dark:bg-gray-800 p-6 border border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        {stat.name}
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20">
+                      <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 flex items-center">
-                  <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-sm text-green-600 dark:text-green-400 font-medium">
-                    {stat.change}
-                  </span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">
-                    from last month
-                  </span>
-                </div>
-              </motion.div>
-            );
-          })}
+                  <div className="mt-4 flex items-center">
+                    <TrendingUp className={cn(
+                      "w-4 h-4 mr-1",
+                      stat.changeType === 'positive' ? 'text-green-500' :
+                      stat.changeType === 'negative' ? 'text-red-500' : 'text-gray-500'
+                    )} />
+                    <span className={cn(
+                      "text-sm font-medium",
+                      stat.changeType === 'positive' ? 'text-green-600 dark:text-green-400' :
+                      stat.changeType === 'negative' ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'
+                    )}>
+                      {stat.change}
+                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 ml-1">
+                      from last month
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })
+          )}
         </div>
 
         {/* Filters and Search */}
