@@ -690,7 +690,7 @@ const GridItem = React.memo(function GridItem({ article, onReadMore, onEdit, onD
       )}>
         {/* Removed all borders and dividers for flat design */}
         <div className={cn(
-          'relative w-full rounded-none',
+          'relative w-full rounded-none overflow-hidden',
           itemLayout?.priority === 'featured' ? 'mb-3' : itemLayout?.priority === 'compact' ? 'mb-1.5' : 'mb-2'
         )} style={{aspectRatio: priorityStyles.aspectRatio}}>
           <ProgressiveImage
@@ -698,11 +698,22 @@ const GridItem = React.memo(function GridItem({ article, onReadMore, onEdit, onD
             alt={article.title}
             width={itemLayout?.priority === 'featured' ? 800 : 400}
             height={itemLayout?.priority === 'featured' ? 450 : 300}
-            className="w-full h-full rounded-none"
+            className="w-full h-full rounded-none transition-transform duration-300 hover:scale-105"
             quality={95}
             fill
             sizes={itemLayout?.priority === 'featured' ? '(max-width: 768px) 100vw, 80vw' : '(max-width: 768px) 100vw, 33vw'}
           />
+          {/* Category overlay */}
+          <div className="absolute top-2 left-2">
+            <span 
+              className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
+              style={{
+                background: 'linear-gradient(90deg, #22c55e, #16a34a)'
+              }}
+            >
+              {article.category}
+            </span>
+          </div>
         </div>
         <div className={cn(
           'flex flex-col',
@@ -712,21 +723,6 @@ const GridItem = React.memo(function GridItem({ article, onReadMore, onEdit, onD
             itemLayout?.priority === 'featured' ? 'space-y-1.5' : 'space-y-1'
           )
         )}>
-          <span className={cn(
-            'inline-block font-semibold text-white rounded-none w-fit',
-            // Template-specific category badge styling
-            templateName === 'Editorial Focus' ? (
-              itemLayout?.priority === 'featured' ? 'bg-blue-600 px-4 py-2 text-base' : 
-              itemLayout?.priority === 'compact' ? 'bg-gray-600 px-2 py-1 text-xs' : 
-              'bg-green-600 px-3 py-1.5 text-sm'
-            ) : (
-              itemLayout?.priority === 'featured' ? 'bg-green-600 px-3 py-2 text-sm' : 
-              itemLayout?.priority === 'compact' ? 'bg-green-600 px-1.5 py-0.5 text-xs' : 
-              'bg-green-600 px-2 py-1 text-xs'
-            )
-          )}>
-            {article.category}
-          </span>
           <h3 className={cn(
             'font-semibold news-title',
             priorityStyles.titleSize,

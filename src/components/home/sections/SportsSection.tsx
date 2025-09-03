@@ -261,24 +261,32 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
         )}
         <div className="space-y-3 p-6 h-full flex flex-col bg-white dark:bg-gray-900">
           <div className={cn(
-            'relative w-full',
+            'relative w-full overflow-hidden',
             isFeatured ? 'aspect-[16/10]' : isCompact ? 'aspect-[4/3]' : 'aspect-[4/3]'
           )}>
             <ProgressiveImage
               src={article.imageUrl}
               alt={article.title}
-              width={400}
-              height={300}
-              className="w-full h-full"
+              width={isFeatured ? 600 : 400}
+              height={isFeatured ? 375 : 300}
+              className="w-full h-full transition-transform duration-300 hover:scale-105"
               quality={95}
               fill
-              sizes="(max-width: 768px) 100vw, 33vw"
+              sizes={isFeatured ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 33vw"}
             />
+            {/* Category overlay */}
+            <div className="absolute top-2 left-2">
+              <span 
+                className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
+                style={{
+                  background: 'linear-gradient(90deg, #f97316, #ea580c)'
+                }}
+              >
+                {article.category}
+              </span>
+            </div>
           </div>
           <div className="space-y-2 flex-1 flex flex-col">
-            <span className="inline-block px-2 py-1 text-xs font-semibold bg-blue-600 text-white">
-              {article.category}
-            </span>
             <h3 className={cn(
               'font-semibold line-clamp-2 news-title',
               isFeatured ? 'text-lg' : isCompact ? 'text-xs' : 'text-sm'

@@ -16,7 +16,7 @@ const defaultSlides = [
     id: '1',
     title: 'Philippines Achieves Record Renewable Energy Growth',
     excerpt: 'The Department of Energy reports unprecedented 794.34 MW of renewable energy capacity added in 2024, marking a historic milestone that surpasses the combined achievements of the previous three years as the nation accelerates its ambitious clean energy transition.',
-    imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90',
+    imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=80',
     category: 'Technology',
     author: 'Department of Energy',
     publishedAt: new Date('2024-01-15T10:00:00Z'),
@@ -27,7 +27,7 @@ const defaultSlides = [
     id: '2',
     title: 'UAE Giant Masdar Enters Philippine Market',
     excerpt: 'International renewable energy leader Masdar has officially signed a comprehensive implementation agreement to develop an impressive 1 GW portfolio of solar, wind and advanced battery storage systems by 2030, directly supporting the Philippines ambitious Energy Transition Program goals.',
-    imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90',
+    imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=80',
     category: 'Environment',
     author: 'Energy News Asia',
     publishedAt: new Date('2024-01-15T08:00:00Z'),
@@ -38,7 +38,7 @@ const defaultSlides = [
     id: '3',
     title: 'Philippines Sets Bold Clean Energy Targets',
     excerpt: 'The government has unveiled ambitious plans to dramatically increase solar power share to 5.6% and quadruple wind power capacity to 11.7% by 2030, positioning the Philippines to potentially achieve one of the cleanest and most sustainable energy grids in Southeast Asia.',
-    imageUrl: 'https://images.unsplash.com/photo-1548337138-e87d889cc369?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&h=1080&q=90',
+    imageUrl: 'https://images.unsplash.com/photo-1548337138-e87d889cc369?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=80',
     category: 'Business',
     author: 'Mylene Capongcol',
     publishedAt: new Date('2024-01-15T06:00:00Z'),
@@ -182,6 +182,8 @@ export function HeroSection() {
       const uploadedSlides = await Promise.all(draftSlides.map(async (s) => {
         const file = localFiles[s.id];
         let imageUrl = s.imageUrl;
+        
+        // Only upload if there's a new file selected
         if (file) {
           const formData = new FormData();
           formData.append('file', file);
@@ -189,12 +191,23 @@ export function HeroSection() {
             const res = await fetch('/api/upload', { method: 'POST', body: formData });
             if (res.ok) {
               const json = await res.json();
-              if (json?.url) imageUrl = json.url as string;
+              if (json?.url) {
+                imageUrl = json.url as string;
+              }
+            } else {
+              console.error('Upload failed with status:', res.status);
             }
           } catch (e) {
             console.error('Upload failed', e);
           }
+        } else {
+          // If no new file, check if imageUrl is a blob URL and revert to original
+          const originalSlide = slides.find(slide => slide.id === s.id);
+          if (originalSlide && s.imageUrl.startsWith('blob:')) {
+            imageUrl = originalSlide.imageUrl;
+          }
         }
+        
         // Always ensure slug is generated from title silently
         const slugify = (str: string) => str
           .toLowerCase()
@@ -241,15 +254,15 @@ export function HeroSection() {
 
   return (
     <section className="relative h-[85vh] min-h-[650px] overflow-hidden mb-4 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20">
-      {/* Background Image with Overlay */}
+      {/* Background Image with Enhanced Overlay */}
       <div className="absolute inset-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, scale: 1.1 }}
+            initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.7 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="absolute inset-0"
           >
             {currentArticle && (
@@ -261,7 +274,26 @@ export function HeroSection() {
                   className="object-cover"
                   priority
                 />
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.5), rgba(0,0,0,0.3))' }} />
+                {/* Enhanced gradient overlay with multiple layers */}
+                <div className="absolute inset-0" style={{ 
+                  background: `linear-gradient(135deg, 
+                    rgba(0,0,0,0.8) 0%, 
+                    rgba(0,0,0,0.6) 25%, 
+                    rgba(0,0,0,0.4) 50%, 
+                    rgba(0,0,0,0.2) 75%, 
+                    rgba(0,0,0,0.1) 100%),
+                    linear-gradient(to bottom, 
+                    rgba(0,0,0,0.3) 0%, 
+                    rgba(0,0,0,0.1) 50%, 
+                    rgba(0,0,0,0.6) 100%)` 
+                }} />
+                {/* Subtle color accent overlay */}
+                <div className="absolute inset-0 opacity-20" style={{
+                  background: currentArticle.category === 'Technology' ? 'linear-gradient(45deg, rgba(59,130,246,0.3), transparent)' :
+                             currentArticle.category === 'Environment' ? 'linear-gradient(45deg, rgba(34,197,94,0.3), transparent)' :
+                             currentArticle.category === 'Business' ? 'linear-gradient(45deg, rgba(168,85,247,0.3), transparent)' :
+                             'linear-gradient(45deg, rgba(99,102,241,0.3), transparent)'
+                }} />
               </>
             )}
           </motion.div>
@@ -286,12 +318,26 @@ export function HeroSection() {
       <div className="relative z-10 h-full">
         <div className="max-w-7xl mx-auto pl-0 pr-4 sm:pr-6 lg:pr-8 w-full h-full">
           <div className="relative h-full flex flex-col max-w-5xl ml-4 sm:ml-6 lg:ml-8">
-            {/* Category badge */}
+            {/* Enhanced Category badge */}
             <div className="flex-shrink-0 pt-16 sm:pt-20 md:pt-24">
               {currentArticle && (
-                <span className={cn('inline-block px-3 py-1 text-xs font-semibold text-white', categoryColors[currentArticle.category as keyof typeof categoryColors] || 'bg-gray-500')}>
+                <motion.span 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                  className={cn('inline-block px-4 py-2 text-xs font-bold text-white uppercase tracking-wider', categoryColors[currentArticle.category as keyof typeof categoryColors] || 'bg-gray-500')}
+                  style={{
+                    background: currentArticle.category === 'Technology' ? 'linear-gradient(90deg, #3b82f6, #1d4ed8)' :
+                               currentArticle.category === 'Environment' ? 'linear-gradient(90deg, #22c55e, #16a34a)' :
+                               currentArticle.category === 'Business' ? 'linear-gradient(90deg, #a855f7, #7c3aed)' :
+                               currentArticle.category === 'Politics' ? 'linear-gradient(90deg, #ef4444, #dc2626)' :
+                               currentArticle.category === 'Sports' ? 'linear-gradient(90deg, #f97316, #ea580c)' :
+                               currentArticle.category === 'Entertainment' ? 'linear-gradient(90deg, #ec4899, #db2777)' :
+                               'linear-gradient(90deg, #6b7280, #4b5563)'
+                  }}
+                >
                   {currentArticle.category}
-                </span>
+                </motion.span>
               )}
             </div>
 
@@ -343,31 +389,75 @@ export function HeroSection() {
               </AnimatePresence>
             </div>
 
-            {/* CTA */}
+            {/* Enhanced CTA */}
             <div className="flex-shrink-0 pb-16 sm:pb-20 md:pb-24 pt-6 sm:pt-8 md:pt-10">
               {currentArticle && (
-                <Link href={`/article/${currentArticle.slug}`} className="inline-flex items-center px-4 py-2 sm:px-5 sm:py-2.5 bg-deep-blue text-white text-xs sm:text-sm font-semibold">
-                  Read Full Story
-                </Link>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                >
+                  <Link 
+                    href={`/article/${currentArticle.slug}`} 
+                    className="inline-flex items-center px-6 py-3 sm:px-8 sm:py-4 text-white text-sm sm:text-base font-bold uppercase tracking-wider transition-all duration-300 hover:scale-105"
+                    style={{
+                      background: 'linear-gradient(90deg, #1e40af, #3b82f6)',
+                      boxShadow: '0 0 0 2px rgba(59, 130, 246, 0.3)'
+                    }}
+                  >
+                    Read Full Story
+                    <motion.div
+                      className="ml-2"
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      →
+                    </motion.div>
+                  </Link>
+                </motion.div>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation Controls */}
+      {/* Enhanced Navigation Controls */}
       <div className="absolute inset-y-0 left-2 sm:left-4 flex items-center z-20">
         <div className="flex items-center">
-          <button onClick={prevSlide} onMouseEnter={() => setIsAutoPlaying(false)} onMouseLeave={() => setIsAutoPlaying(true)} className="p-2 bg-black/40 text-white/80" aria-label="Previous slide" style={{ borderRadius: 0 }}>
-            <ChevronLeft className="w-4 h-4" />
-          </button>
+          <motion.button 
+            onClick={prevSlide} 
+            onMouseEnter={() => setIsAutoPlaying(false)} 
+            onMouseLeave={() => setIsAutoPlaying(true)} 
+            className="p-3 text-white transition-all duration-300 hover:scale-110" 
+            aria-label="Previous slide" 
+            style={{ 
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.8))',
+              backdropFilter: 'blur(10px)'
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </motion.button>
         </div>
       </div>
 
       <div className="absolute inset-y-0 right-2 sm:right-4 flex items-center z-20">
-        <button onClick={nextSlide} onMouseEnter={() => setIsAutoPlaying(false)} onMouseLeave={() => setIsAutoPlaying(true)} className="p-2 bg-black/40 text-white/80" aria-label="Next slide" style={{ borderRadius: 0 }}>
-          <ChevronRight className="w-4 h-4" />
-        </button>
+        <motion.button 
+          onClick={nextSlide} 
+          onMouseEnter={() => setIsAutoPlaying(false)} 
+          onMouseLeave={() => setIsAutoPlaying(true)} 
+          className="p-3 text-white transition-all duration-300 hover:scale-110" 
+          aria-label="Next slide" 
+          style={{ 
+            background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.8))',
+            backdropFilter: 'blur(10px)'
+          }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <ChevronRight className="w-5 h-5" />
+        </motion.button>
       </div>
 
       {/* Slide Indicators */}
@@ -377,9 +467,28 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Enhanced Progress Bar */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30">
-        <motion.div className="h-full bg-blue-500" initial={{ width: '0%' }} animate={{ width: isAutoPlaying && !editMode ? '100%' : '0%' }} transition={{ duration: 5, ease: 'linear' }} key={currentSlide} />
+        <motion.div 
+          className="h-full" 
+          style={{ background: 'linear-gradient(90deg, #3b82f6, #1d4ed8, #6366f1)' }}
+          initial={{ width: '0%' }} 
+          animate={{ width: isAutoPlaying && !editMode ? '100%' : '0%' }} 
+          transition={{ duration: 5, ease: 'linear' }} 
+          key={currentSlide} 
+        />
+        {/* Glowing effect */}
+        <motion.div 
+          className="absolute top-0 h-full opacity-60" 
+          style={{ 
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent)',
+            width: '20px'
+          }}
+          initial={{ left: '-20px' }} 
+          animate={{ left: isAutoPlaying && !editMode ? 'calc(100% - 20px)' : '-20px' }} 
+          transition={{ duration: 5, ease: 'linear', repeat: Infinity }} 
+          key={currentSlide}
+        />
       </div>
 
       {/* Edit panel */}

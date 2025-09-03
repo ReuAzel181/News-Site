@@ -605,7 +605,7 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
           'bg-white dark:bg-gray-900'
         )}>
           <div className={cn(
-            'relative w-full rounded-none',
+            'relative w-full rounded-none overflow-hidden',
             isFeatured ? 'aspect-[16/10]' : isCompact ? 'aspect-[4/3]' : 'aspect-[4/3]'
           )}>
             <ProgressiveImage
@@ -613,16 +613,24 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
               alt={article.title}
               width={isFeatured ? 600 : 400}
               height={isFeatured ? 375 : 300}
-              className="w-full h-full rounded-none"
+              className="w-full h-full rounded-none transition-transform duration-300 hover:scale-105"
               quality={95}
               fill
               sizes={isFeatured ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 33vw"}
             />
+            {/* Category overlay */}
+            <div className="absolute top-2 left-2">
+              <span 
+                className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
+                style={{
+                  background: 'linear-gradient(90deg, #ec4899, #db2777)'
+                }}
+              >
+                {article.category}
+              </span>
+            </div>
           </div>
           <div className="space-y-2 flex-1 flex flex-col">
-            <span className="inline-block px-2 py-1 text-xs font-semibold bg-pink-600 text-white rounded-none">
-              {article.category}
-            </span>
             <h3 className={cn(
               'font-semibold line-clamp-2 news-title',
               isFeatured ? 'text-lg' : isCompact ? 'text-xs' : 'text-sm'

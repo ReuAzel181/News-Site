@@ -265,40 +265,58 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
             )}
           </div>
         )}
-        <div className="space-y-3 p-6 h-full flex flex-col bg-white dark:bg-gray-900">
+        <div className="space-y-3 p-5 h-full flex flex-col bg-white dark:bg-gray-900 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800">
           <div className={cn(
-            'relative w-full',
-            isFeatured ? 'aspect-[16/10]' : isCompact ? 'aspect-[4/3]' : 'aspect-[4/3]'
+            'relative w-full overflow-hidden',
+            isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'
           )}>
             <ProgressiveImage
-              src={article.imageUrl}
+              src={article.imageUrl || ''}
               alt={article.title}
-              width={400}
-              height={300}
-              className="w-full h-full"
-              quality={95}
+              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
               fill
-              sizes="(max-width: 768px) 100vw, 33vw"
             />
+            {/* Category overlay */}
+            <div className="absolute top-2 left-2">
+              <span 
+                className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
+                style={{
+                  background: article.category === 'Technology' ? 'linear-gradient(90deg, #3b82f6, #1d4ed8)' :
+                             article.category === 'Environment' ? 'linear-gradient(90deg, #22c55e, #16a34a)' :
+                             article.category === 'Business' ? 'linear-gradient(90deg, #a855f7, #7c3aed)' :
+                             article.category === 'Politics' ? 'linear-gradient(90deg, #ef4444, #dc2626)' :
+                             article.category === 'Sports' ? 'linear-gradient(90deg, #f97316, #ea580c)' :
+                             article.category === 'Entertainment' ? 'linear-gradient(90deg, #ec4899, #db2777)' :
+                             'linear-gradient(90deg, #6b7280, #4b5563)'
+                }}
+              >
+                {article.category}
+              </span>
+            </div>
           </div>
-          <div className="space-y-2 flex-1 flex flex-col">
-            <span className="inline-block px-2 py-1 text-xs font-semibold bg-purple-600 text-white">
-              {article.category}
-            </span>
-            <h3 className={cn(
-              'font-semibold line-clamp-2 news-title',
-              isFeatured ? 'text-lg' : isCompact ? 'text-xs' : 'text-sm'
-            )}>
-              {article.title}
-            </h3>
-            <p className={cn(
-              'line-clamp-2 news-content text-gray-500 font-sans',
-              isFeatured ? 'text-sm' : 'text-xs'
-            )}>
-              {article.excerpt}
-            </p>
-            <div className="text-xs news-meta mt-auto">
-              {formatDistanceToNow(article.publishedAt, { addSuffix: true })}
+          <div className="flex-1 flex flex-col justify-between">
+            <div>
+              <h3 className={cn(
+                'font-bold leading-tight mb-2 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200',
+                isFeatured ? 'text-xl' : isCompact ? 'text-sm' : 'text-base'
+              )}>
+                {article.title}
+              </h3>
+              {!isCompact && (
+                <p className={cn(
+                  'text-gray-600 dark:text-gray-300 font-sans mb-3 line-clamp-2 leading-relaxed',
+                  isFeatured ? 'text-base' : 'text-sm'
+                )}>
+                  {article.excerpt}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 opacity-60"></div>
+                <span className="font-medium">{article.author || 'Staff Writer'}</span>
+              </div>
+              <time className="text-xs font-medium">{formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}</time>
             </div>
           </div>
         </div>
@@ -489,56 +507,35 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
         </div>
       )}
 
-      <div className="w-full">
-        <div className="flex flex-col">
-          {(() => {
-            const cols = gridMetrics.cols;
-            const totalItems = Math.min(techNews.length, itemCount);
-            const rows = [];
-            
-            // Split articles into rows
-            for (let i = 0; i < totalItems; i += cols) {
-              rows.push(techNews.slice(i, i + cols));
-            }
-            
-            return rows.map((row, rowIndex) => (
-              <React.Fragment key={rowIndex}>
-                <div className="flex">
-                  {row.map((article, colIndex) => {
-                    const index = rowIndex * cols + colIndex;
-                    return (
-                      <React.Fragment key={article.id}>
-                        <div className="flex-1">
-                          <GridItem
-                            article={article}
-                            onReadMore={onReadMore}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                            isAdmin={isAdmin}
-                            editingLayout={editingLayout}
-                            itemLayout={selectedTemplate.itemLayouts?.[index]}
-                            currentBreakpoint={bp}
-                            templateName={selectedTemplate.name}
-                            index={index}
-                            totalItems={totalItems}
-                          />
-                        </div>
-                        {/* Vertical separator line between columns */}
-                        {colIndex < row.length - 1 && (
-                          <div className="w-px bg-gray-400 dark:bg-gray-500 flex-shrink-0" />
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </div>
-                {/* Horizontal separator line between rows */}
-                {rowIndex < rows.length - 1 && (
-                  <hr className="my-4 border-0 border-t border-gray-400 dark:border-gray-500 w-full" />
-                )}
+      <div className="pt-4 px-4 pb-4">
+        <div className="relative">
+          <div className={cn(
+            'grid gap-3 relative',
+            gridClass
+          )}>
+            {techNews.slice(0, Math.min(itemCount, techNews.length)).map((article, index) => {
+              const itemLayout = selectedTemplate.itemLayouts?.[index];
+              const colSpanClasses = itemLayout ? COL_SPAN_CLASS[itemLayout.colSpan[bp]] : 'col-span-1';
 
-              </React.Fragment>
-            ));
-          })()}
+              return (
+                <div key={article.id} className={cn('relative', colSpanClasses)}>
+                  <GridItem
+                    article={article}
+                    onReadMore={onReadMore}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    isAdmin={isAdmin}
+                    editingLayout={editingLayout}
+                    itemLayout={itemLayout}
+                    currentBreakpoint={bp}
+                    templateName={selectedTemplate.name}
+                    index={index}
+                    totalItems={Math.min(techNews.length, itemCount)}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
