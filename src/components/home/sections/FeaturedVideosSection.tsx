@@ -284,6 +284,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
       </div>
     );
   });
+  GridOverlay.displayName = 'GridOverlay';
 
   return (
     <section className="mt-12 mb-16" id="featured-videos">

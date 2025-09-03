@@ -28,7 +28,7 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
       setLocalImageUrl(null);
       setLocalImageFile(null);
     }
-  }, [article]);
+  }, [article, localImageUrl]);
 
   useEffect(() => {
     return () => {

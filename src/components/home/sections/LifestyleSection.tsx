@@ -251,6 +251,7 @@ export function LifestyleSection({ articles, onReadMore, onEdit }: LifestyleSect
       </div>
     );
   });
+  GridOverlay.displayName = 'GridOverlay';
 
 
 

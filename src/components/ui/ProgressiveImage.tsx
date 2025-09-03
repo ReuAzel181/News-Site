@@ -124,6 +124,7 @@ export function ProgressiveImage({
           </div>
         )}
         <div className="relative w-full h-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
             alt={alt}
@@ -146,6 +147,7 @@ export function ProgressiveImage({
     return (
       <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
         <div className="relative w-full h-full">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
             alt={alt}
