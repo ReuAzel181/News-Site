@@ -120,7 +120,7 @@ export async function GET() {
       },
       {
         name: 'Categories',
-        value: categoriesCount.toString(),
+        value: totalCategories.toString(),
         change: '0%',
         changeType: 'neutral',
         icon: 'BarChart3'
