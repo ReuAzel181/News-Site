@@ -95,7 +95,7 @@ export function HeroSection() {
     async function load() {
       try {
         console.log('Loading slides from server...');
-        const res = await fetch(`/api/content?t=${Date.now()}`, { cache: 'no-store' });
+        const res = await fetch('/api/content', { cache: 'no-store' });
         const json = await res.json();
         console.log('Raw server response:', json);
         const serverSlides: HeroSlide[] = Array.isArray(json?.data?.heroSlides) ? json.data.heroSlides : [];
@@ -183,7 +183,7 @@ export function HeroSection() {
     }));
   };
   const addSlide = () => {
-    const id = `slide-${Math.floor(Math.random() * 1000000)}-${slides.length}`;
+    const id = `slide-${Date.now()}-${slides.length}`;
     const slugify = (str: string) => str
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
@@ -456,7 +456,7 @@ export function HeroSection() {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-                        <span className="whitespace-nowrap">{mounted && currentArticle ? (() => { const d = new Date(currentArticle.publishedAt as string | Date); return isNaN(d.getTime()) ? 'N/A' : formatDistanceToNow(d, { addSuffix: true }); })() : 'Loading...'}</span>
+                        <span className="whitespace-nowrap">{!mounted ? '' : currentArticle ? (() => { const d = new Date(currentArticle.publishedAt as string | Date); return isNaN(d.getTime()) ? 'N/A' : formatDistanceToNow(d, { addSuffix: true }); })() : ''}</span>
                       </div>
                       {currentArticle?.source && (
                         <div className="flex items-center space-x-1">

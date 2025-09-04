@@ -27,7 +27,7 @@ interface StatItem {
   value: string;
   change: string;
   changeType: 'positive' | 'negative' | 'neutral';
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
 }
 
 const navigation = [

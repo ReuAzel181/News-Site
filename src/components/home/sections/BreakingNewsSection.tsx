@@ -152,6 +152,13 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
       index === self.findIndex(a => a.id === article.id)
     );
 
+  // Hydration handling
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Layout editor state (admin only)
   const [editingLayout, setEditingLayout] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<LayoutTemplate>(LAYOUT_TEMPLATES[0]);
@@ -605,7 +612,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
                  <div className="w-2 h-2 bg-blue-500 opacity-60"></div>
                  <span className="font-medium">{article.author || 'Staff Writer'}</span>
                </div>
-               <time className="text-xs font-medium">{formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}</time>
+               <time className="text-xs font-medium">{mounted ? formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true }) : ''}</time>
              </div>
            </div>
          </div>
