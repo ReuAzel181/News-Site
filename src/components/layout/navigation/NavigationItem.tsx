@@ -23,7 +23,7 @@ export function NavigationItem({
   className 
 }: NavigationItemProps) {
   const baseClasses = {
-    desktop: "px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 ease-in-out focus:outline-none cursor-pointer relative whitespace-nowrap",
+    desktop: "px-2 py-3 text-xs font-normal text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 ease-in-out focus:outline-none cursor-pointer relative whitespace-nowrap",
     mobile: "flex items-center space-x-3 px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 ease-in-out cursor-pointer relative"
   };
 
@@ -34,14 +34,7 @@ export function NavigationItem({
 
   if (variant === 'desktop') {
     return (
-      <motion.div
-        key={`nav-${item.href}-${index}`}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.1, duration: 0.3, ease: "easeOut" }}
-        whileHover={{ y: -2 }}
-        whileTap={{ y: 0 }}
-      >
+      <div tabIndex={0}>
         <a
           href={item.href}
           role="menuitem"
@@ -57,7 +50,7 @@ export function NavigationItem({
         >
           {item.name}
         </a>
-      </motion.div>
+      </div>
     );
   }
 

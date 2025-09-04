@@ -22,6 +22,14 @@ import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { cn } from '@/utils/cn';
 
+interface StatItem {
+  name: string;
+  value: string;
+  change: string;
+  changeType: 'positive' | 'negative' | 'neutral';
+  icon: React.ComponentType<any>;
+}
+
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard, badge: null },
   { name: 'Articles', href: '/admin/articles', icon: FileText, badge: null },
@@ -39,7 +47,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPath, setCurrentPath] = useState('');
-  const [stats, setStats] = useState<any[]>([]);
+  const [stats, setStats] = useState<StatItem[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {

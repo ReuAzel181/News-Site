@@ -139,7 +139,7 @@ export function Header() {
     >
   
       {/* Main Navigation */}
-      <nav className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8" role="navigation" aria-label="Main navigation">
+      <nav className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12" role="navigation" aria-label="Main navigation">
         <div className="flex justify-between items-center h-20">
           {/* Enhanced Logo */}
           <motion.div

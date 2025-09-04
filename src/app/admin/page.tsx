@@ -95,7 +95,7 @@ interface StatItem {
   value: string;
   change: string;
   changeType: 'positive' | 'negative' | 'neutral';
-  icon: any;
+  icon: React.ComponentType<any>;
 }
 
 // Fetch statistics from API

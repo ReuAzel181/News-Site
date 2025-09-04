@@ -388,7 +388,7 @@ export default function SearchPage() {
                                 src={article.imageUrl}
                                 alt={article.title}
                                 fill
-                                className="object-cover"
+                                className="object-cover transition-transform duration-300 ease-out hover:scale-105"
                               />
                             </div>
                           </Link>

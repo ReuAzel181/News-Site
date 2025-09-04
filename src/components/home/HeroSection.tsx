@@ -339,6 +339,7 @@ export function HeroSection() {
                     fill
                     sizes="100vw"
                     priority={currentSlide === 0}
+                    className="transition-transform duration-500 ease-out hover:scale-105"
                   />
                 </div>
                 
