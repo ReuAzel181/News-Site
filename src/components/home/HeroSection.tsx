@@ -16,7 +16,7 @@ const defaultSlides = [
     id: '1',
     title: 'Philippines Achieves Record Renewable Energy Growth',
     excerpt: 'The Department of Energy reports unprecedented 794.34 MW of renewable energy capacity added in 2024, marking a historic milestone that surpasses the combined achievements of the previous three years as the nation accelerates its ambitious clean energy transition.',
-    imageUrl: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=85',
     category: 'Technology',
     author: 'Department of Energy',
     publishedAt: new Date('2024-01-15T10:00:00Z'),
@@ -27,7 +27,7 @@ const defaultSlides = [
     id: '2',
     title: 'UAE Giant Masdar Enters Philippine Market',
     excerpt: 'International renewable energy leader Masdar has officially signed a comprehensive implementation agreement to develop an impressive 1 GW portfolio of solar, wind and advanced battery storage systems by 2030, directly supporting the Philippines ambitious Energy Transition Program goals.',
-    imageUrl: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=85',
     category: 'Environment',
     author: 'Energy News Asia',
     publishedAt: new Date('2024-01-15T08:00:00Z'),
@@ -38,7 +38,7 @@ const defaultSlides = [
     id: '3',
     title: 'Philippines Sets Bold Clean Energy Targets',
     excerpt: 'The government has unveiled ambitious plans to dramatically increase solar power share to 5.6% and quadruple wind power capacity to 11.7% by 2030, positioning the Philippines to potentially achieve one of the cleanest and most sustainable energy grids in Southeast Asia.',
-    imageUrl: 'https://images.unsplash.com/photo-1548337138-e87d889cc369?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&h=1080&q=85',
     category: 'Business',
     author: 'Mylene Capongcol',
     publishedAt: new Date('2024-01-15T06:00:00Z'),
@@ -81,7 +81,9 @@ export function HeroSection() {
   const [editMode, setEditMode] = useState(false);
   const [draftSlides, setDraftSlides] = useState<HeroSlide[]>([]);
   const [saving, setSaving] = useState(false);
-  const [localFiles, setLocalFiles] = useState<Record<string, File | undefined>>({});
+   const [localFiles, setLocalFiles] = useState<Record<string, File>>({});
+   const [reloadTrigger, setReloadTrigger] = useState(0);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
   // Track visibility of per-slide details to avoid cramped layouts
   const [detailsOpen, setDetailsOpen] = useState<Record<string, boolean>>({});
 
@@ -92,21 +94,50 @@ export function HeroSection() {
     let isCancelled = false;
     async function load() {
       try {
-        const res = await fetch('/api/content', { cache: 'no-store' });
+        console.log('Loading slides from server...');
+        const res = await fetch(`/api/content?t=${Date.now()}`, { cache: 'no-store' });
         const json = await res.json();
+        console.log('Raw server response:', json);
         const serverSlides: HeroSlide[] = Array.isArray(json?.data?.heroSlides) ? json.data.heroSlides : [];
-        if (!isCancelled && serverSlides.length) {
-          // Normalize dates
-          const normalized = serverSlides.map((s) => ({ ...s, publishedAt: s.publishedAt ? new Date(s.publishedAt) : new Date('2024-01-01') }));
-          setSlides(normalized);
+        console.log('Server slides loaded:', serverSlides.length, 'slides');
+        console.log('Server slides data:', serverSlides);
+        
+        if (!isCancelled) {
+          // Always update slides with server data, or fall back to defaults if server has no slides
+          if (serverSlides.length > 0) {
+            // Normalize dates and ensure image URLs are properly formatted
+            const normalized = serverSlides.map((s) => {
+              let imageUrl = s.imageUrl;
+              // Ensure uploaded images have proper URL format
+              if (imageUrl && imageUrl.startsWith('/uploads/')) {
+                // Make sure the URL is absolute for proper loading
+                imageUrl = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+              }
+              return {
+                ...s, 
+                publishedAt: s.publishedAt ? new Date(s.publishedAt) : new Date('2024-01-01'),
+                imageUrl
+              };
+            });
+            console.log('Setting slides from server data:', normalized);
+            setSlides(normalized);
+            setLastUpdateTime(new Date().toLocaleTimeString());
+            console.log('Slides state updated with server data');
+          } else {
+            // If server has no slides, use defaults
+            console.log('No server slides found, using defaults');
+            setSlides(defaultSlides);
+            setLastUpdateTime(new Date().toLocaleTimeString());
+          }
         }
-      } catch {
+      } catch (error) {
+        console.error('Failed to load slides from server:', error);
         // silent fail, keep defaults
       }
     }
     load();
     return () => { isCancelled = true; };
-  }, []);
+  }, [reloadTrigger]);
 
   // Auto-advance slides
   useEffect(() => {
@@ -119,6 +150,8 @@ export function HeroSection() {
 
   const currentSlides = editMode ? draftSlides : slides;
   const currentArticle = currentSlides[currentSlide];
+
+
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % currentSlides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + currentSlides.length) % currentSlides.length);
@@ -188,17 +221,25 @@ export function HeroSection() {
           const formData = new FormData();
           formData.append('file', file);
           try {
+            console.log(`Uploading file for slide ${s.id}:`, file.name);
             const res = await fetch('/api/upload', { method: 'POST', body: formData });
             if (res.ok) {
               const json = await res.json();
               if (json?.url) {
                 imageUrl = json.url as string;
+                console.log(`Upload successful for slide ${s.id}:`, imageUrl);
+              } else {
+                console.error(`Upload response missing URL for slide ${s.id}:`, json);
+                throw new Error('Upload response missing URL');
               }
             } else {
-              console.error('Upload failed with status:', res.status);
+              const errorText = await res.text();
+              console.error(`Upload failed for slide ${s.id} with status:`, res.status, errorText);
+              throw new Error(`Upload failed: ${res.status} ${errorText}`);
             }
           } catch (e) {
-            console.error('Upload failed', e);
+            console.error(`Upload failed for slide ${s.id}:`, e);
+            throw new Error(`Failed to upload image for slide ${s.id}: ${e instanceof Error ? e.message : 'Unknown error'}`);
           }
         } else {
           // If no new file, check if imageUrl is a blob URL and revert to original
@@ -219,13 +260,36 @@ export function HeroSection() {
       }));
 
       const payload = { op: 'setHeroSlides', slides: uploadedSlides.map(s => { const p = s.publishedAt; const normalized = p instanceof Date ? (isNaN(p.getTime()) ? '' : p.toISOString()) : p; return ({ ...s, publishedAt: normalized }); }) };
+      console.log('Saving slides payload:', payload);
+      
       const res = await fetch('/api/content', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error('Failed to save');
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Content save failed:', res.status, errorText);
+        throw new Error(`Failed to save slides to server: ${res.status} ${errorText}`);
+      }
+      const result = await res.json();
+      if (!result.success) {
+        console.error('Content save returned failure:', result);
+        throw new Error('Server reported save failure');
+      }
+      console.log('Content save successful:', result);
+      
+      // Update local state immediately
       setSlides(uploadedSlides);
       setEditMode(false);
       setLocalFiles({});
+      setDraftSlides([]);
+      
+      // Trigger reload from server to ensure persistence
+      setTimeout(() => {
+        console.log('Triggering reload from server...');
+        setReloadTrigger(prev => prev + 1);
+      }, 500);
     } catch (e) {
-      console.error(e);
+      console.error('Save operation failed:', e);
+      // You could add a toast notification here in the future
+      alert(`Failed to save slides: ${e instanceof Error ? e.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -250,7 +314,7 @@ export function HeroSection() {
 
   const indicatorButtons = useMemo(() => currentSlides.map((_, index) => (
     <IndicatorButton key={index} index={index} />
-  )), [currentSlides, IndicatorButton]);
+  )), [currentSlides, currentSlide]);
 
   return (
     <section className="relative h-[85vh] min-h-[650px] overflow-hidden mb-4 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20">
@@ -267,15 +331,22 @@ export function HeroSection() {
           >
             {currentArticle && (
               <>
-                <ProgressiveImage
-                  src={currentArticle.imageUrl}
-                  alt={currentArticle.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
+                {/* Image container with proper positioning for fill */}
+                <div className="relative w-full h-full bg-gray-800">
+                  <ProgressiveImage
+                    src={currentArticle.imageUrl}
+                    alt={currentArticle.title}
+                    fill
+                    sizes="100vw"
+                    priority={currentSlide === 0}
+                  />
+                </div>
+                
+
+                
                 {/* Enhanced gradient overlay with multiple layers */}
                 <div className="absolute inset-0" style={{ 
+                  zIndex: 2,
                   background: `linear-gradient(135deg, 
                     rgba(0,0,0,0.8) 0%, 
                     rgba(0,0,0,0.6) 25%, 
@@ -287,8 +358,10 @@ export function HeroSection() {
                     rgba(0,0,0,0.1) 50%, 
                     rgba(0,0,0,0.6) 100%)` 
                 }} />
+                
                 {/* Subtle color accent overlay */}
                 <div className="absolute inset-0 opacity-20" style={{
+                  zIndex: 3,
                   background: currentArticle.category === 'Technology' ? 'linear-gradient(45deg, rgba(59,130,246,0.3), transparent)' :
                              currentArticle.category === 'Environment' ? 'linear-gradient(45deg, rgba(34,197,94,0.3), transparent)' :
                              currentArticle.category === 'Business' ? 'linear-gradient(45deg, rgba(168,85,247,0.3), transparent)' :
@@ -302,14 +375,21 @@ export function HeroSection() {
 
       {/* Admin controls */}
       {mounted && isAdmin && (
-        <div className="absolute top-4 right-4 z-30 flex gap-2">
-          {!editMode ? (
-            <button type="button" onClick={startEdit} className="px-3 py-1 bg-black text-white" style={{ borderRadius: 0 }}>Edit Hero</button>
-          ) : (
-            <>
-              <button type="button" onClick={cancelEdit} className="px-3 py-1 bg-gray-200" style={{ borderRadius: 0 }}>Cancel</button>
-              <button type="button" onClick={saveSlides} disabled={saving} className="px-3 py-1 bg-black text-white" style={{ borderRadius: 0 }}>{saving ? 'Saving…' : 'Save'}</button>
-            </>
+        <div className="absolute top-4 right-4 z-30 flex flex-col gap-2">
+          <div className="flex gap-2">
+            {!editMode ? (
+              <button type="button" onClick={startEdit} className="px-3 py-1 bg-black text-white" style={{ borderRadius: 0 }}>Edit Hero</button>
+            ) : (
+              <>
+                <button type="button" onClick={cancelEdit} className="px-3 py-1 bg-gray-200" style={{ borderRadius: 0 }}>Cancel</button>
+                <button type="button" onClick={saveSlides} disabled={saving} className="px-3 py-1 bg-black text-white" style={{ borderRadius: 0 }}>{saving ? 'Saving…' : 'Save'}</button>
+              </>
+            )}
+          </div>
+          {lastUpdateTime && (
+            <div className="text-xs bg-black text-white px-2 py-1" style={{ borderRadius: 0 }}>
+              Last updated: {lastUpdateTime}
+            </div>
           )}
         </div>
       )}
@@ -475,7 +555,7 @@ export function HeroSection() {
           initial={{ width: '0%' }} 
           animate={{ width: isAutoPlaying && !editMode ? '100%' : '0%' }} 
           transition={{ duration: 5, ease: 'linear' }} 
-          key={currentSlide} 
+          key={`progress-${currentSlide}`} 
         />
         {/* Glowing effect */}
         <motion.div 
@@ -487,7 +567,7 @@ export function HeroSection() {
           initial={{ left: '-20px' }} 
           animate={{ left: isAutoPlaying && !editMode ? 'calc(100% - 20px)' : '-20px' }} 
           transition={{ duration: 5, ease: 'linear', repeat: Infinity }} 
-          key={currentSlide}
+          key={`glow-${currentSlide}`}
         />
       </div>
 

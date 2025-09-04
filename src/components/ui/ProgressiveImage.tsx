@@ -1,45 +1,55 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+import Image, { ImageProps } from 'next/image';
 import { cn } from '@/utils/cn';
 
-interface ProgressiveImageProps {
-  src: string;
-  alt: string;
-  width?: number;
-  height?: number;
-  className?: string;
-  priority?: boolean;
-  placeholder?: string;
-  fill?: boolean;
-  sizes?: string;
-  quality?: number; // optional; if provided we may use later, but we won't pass to next/image to avoid warnings
-  unoptimized?: boolean;
+interface ProgressiveImageProps extends Omit<ImageProps, 'onLoad' | 'onError'> {
+  lowSrc?: string; // Optional low-quality placeholder for blur effect
+  onLoad?: () => void;
+  onError?: () => void;
 }
 
 export function ProgressiveImage({
   src,
   alt,
-  width,
-  height,
   className = '',
   priority = false,
-  placeholder,
   fill = false,
   sizes,
-  // quality intentionally not defaulted to avoid Next.js warnings when not configured
-  quality,
+  lowSrc,
   unoptimized,
+  onLoad: externalOnLoad,
+  onError: externalOnError,
+  ...restProps
 }: ProgressiveImageProps) {
+  // Separate width/height from other props when fill is true
+  const { width, height, ...otherProps } = restProps;
+  const imageProps = fill ? otherProps : restProps;
   const [isLoading, setIsLoading] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
+
+  // Convert src to string for img elements
+  const srcString = typeof src === 'string' ? src : (typeof src === 'object' && src !== null && 'src' in src) ? String(src.src) : '';
+  
+  // Fallback placeholder image (a simple gray rectangle SVG)
+  const fallbackSrc = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23e5e7eb'/%3E%3Ctext x='200' y='150' text-anchor='middle' dy='0.3em' font-family='Arial, sans-serif' font-size='16' fill='%23374151'%3EImage not available%3C/text%3E%3C/svg%3E";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Intersection Observer for lazy loading
   useEffect(() => {
+    if (!mounted) return;
+    
     if (priority) {
-      setIsLoading(false);
+      setIsVisible(true);
+      setIsLoading(true); // Reset loading state for priority images
       return;
     }
 
@@ -47,7 +57,8 @@ export function ProgressiveImage({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setIsLoading(false);
+            setIsVisible(true);
+            setIsLoading(true); // Reset loading state when image becomes visible
             observer.unobserve(entry.target);
           }
         });
@@ -68,20 +79,41 @@ export function ProgressiveImage({
         observer.unobserve(current);
       }
     };
-  }, [priority]);
+  }, [priority, mounted]);
 
   const handleLoad = () => {
     setIsLoading(false);
+    setShowFallback(false);
+    externalOnLoad?.();
   };
 
   const handleError = () => {
     setHasError(true);
     setIsLoading(false);
+    setShowFallback(true);
+    externalOnError?.();
+  };
+
+  const handleFallbackError = () => {
+    // If even the fallback fails, just show the placeholder
+    setShowFallback(false);
   };
 
   const noImage = !src;
   const isLocalPreview = typeof src === 'string' && (src.startsWith('blob:') || src.startsWith('data:'));
   const isUnsplash = typeof src === 'string' && src.includes('images.unsplash.com');
+  
+  // Auto-detect if image should be unoptimized
+  const shouldBeUnoptimized = unoptimized ?? isLocalPreview;
+
+  // Don't render anything until mounted to avoid hydration issues
+  if (!mounted) {
+    return (
+      <div className={cn('relative overflow-hidden bg-gray-200 dark:bg-gray-700', className)}>
+        <div className="w-full h-full" />
+      </div>
+    );
+  }
 
   // Show placeholder only when there is no image at all
   if (noImage) {
@@ -114,30 +146,47 @@ export function ProgressiveImage({
   if (isLocalPreview) {
     return (
       <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
-        {isLoading && (
-          <div className="absolute inset-0 bg-gray-2 00 dark:bg-gray-700">
-            {placeholder && (
+        {!isVisible && (
+          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700">
+            {lowSrc && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600" />
               </div>
             )}
           </div>
         )}
-        <div className="relative w-full h-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={alt}
-            onLoad={handleLoad}
-            onError={handleError}
-            style={{
-              width: fill ? '100%' : (width ? `${width}px` : 'auto'),
-              height: fill ? '100%' : (height ? `${height}px` : 'auto'),
-              objectFit: fill ? 'cover' : undefined,
-              display: 'block'
-            }}
-          />
-        </div>
+        {isVisible && isLoading && (
+          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700">
+            {lowSrc && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600" />
+              </div>
+            )}
+          </div>
+        )}
+        {isVisible && (
+          <div className="relative w-full h-full" style={{ zIndex: 1 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={showFallback ? fallbackSrc : srcString}
+              alt={alt}
+              onLoad={handleLoad}
+              onError={showFallback ? handleFallbackError : handleError}
+              style={{
+                width: fill ? '100%' : (restProps.width ? `${restProps.width}px` : 'auto'),
+                height: fill ? '100%' : (restProps.height ? `${restProps.height}px` : 'auto'),
+                objectFit: fill ? 'cover' : undefined,
+                display: 'block'
+              }}
+            />
+            {/* Loading overlay on top of image */}
+            {isLoading && (
+              <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center" style={{ zIndex: 2 }}>
+                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 animate-pulse" />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -146,31 +195,51 @@ export function ProgressiveImage({
   if (hasError) {
     return (
       <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
-        <div className="relative w-full h-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={alt}
-            onLoad={handleLoad}
-            onError={() => { /* keep fallback */ }}
-            style={{
-              width: fill ? '100%' : (width ? `${width}px` : 'auto'),
-              height: fill ? '100%' : (height ? `${height}px` : 'auto'),
-              objectFit: fill ? 'cover' : undefined,
-              display: 'block'
-            }}
-          />
-        </div>
+        {/* Show loading placeholder when not visible yet */}
+        {!isVisible && (
+          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700">
+            {lowSrc && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600" />
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Actual fallback image - only render when visible */}
+         {isVisible && (
+           <div className="relative w-full h-full" style={{ zIndex: 1 }}>
+             {/* eslint-disable-next-line @next/next/no-img-element */}
+             <img
+               src={showFallback ? fallbackSrc : srcString}
+               alt={alt}
+               onLoad={handleLoad}
+               onError={showFallback ? handleFallbackError : () => setShowFallback(true)}
+               style={{
+                 width: fill ? '100%' : (restProps.width ? `${restProps.width}px` : 'auto'),
+                 height: fill ? '100%' : (restProps.height ? `${restProps.height}px` : 'auto'),
+                 objectFit: fill ? 'cover' : undefined,
+                 display: 'block'
+               }}
+             />
+             {/* Loading overlay on top of image */}
+             {isLoading && (
+               <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center" style={{ zIndex: 2 }}>
+                 <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 animate-pulse" />
+               </div>
+             )}
+           </div>
+         )}
       </div>
     );
   }
 
   return (
     <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
-      {/* Static loading placeholder: flat (no animations) */}
-      {isLoading && (
+      {/* Show loading placeholder when not visible yet */}
+      {!isVisible && (
         <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700">
-          {placeholder && (
+          {lowSrc && (
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600" />
             </div>
@@ -178,27 +247,31 @@ export function ProgressiveImage({
         </div>
       )}
 
-      {/* Actual image */}
-      <div className="relative w-full h-full">
-        <Image
-          src={src}
-          alt={alt}
-          width={fill ? undefined : (width ?? 400)}
-          height={fill ? undefined : (height ?? 300)}
-          fill={fill}
-          sizes={sizes}
-          // quality intentionally omitted to avoid Next.js 16 warnings when not configured in next.config.mjs
-          priority={priority}
-          onLoad={handleLoad}
-          onError={handleError}
-          className={cn(
-            fill ? 'object-cover' : ''
+      {/* Actual image - always render when visible */}
+      {isVisible && (
+        <div className="relative w-full h-full" style={{ zIndex: 1 }}>
+          <Image
+            src={src}
+            alt={alt}
+            fill={fill}
+            sizes={sizes}
+            priority={priority}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={fill ? 'object-cover' : ''}
+            placeholder={lowSrc ? 'blur' : 'empty'}
+            blurDataURL={lowSrc}
+            unoptimized={shouldBeUnoptimized}
+            {...imageProps}
+          />
+          {/* Loading overlay on top of image */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center" style={{ zIndex: 2 }}>
+              <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 animate-pulse" />
+            </div>
           )}
-          placeholder={placeholder ? 'blur' : 'empty'}
-          blurDataURL={placeholder}
-          unoptimized={unoptimized ?? isUnsplash}
-        />
-      </div>
+        </div>
+      )}
     </div>
   );
 }

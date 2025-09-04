@@ -11,13 +11,35 @@ const nextConfig = {
   },
   outputFileTracingRoot: path.join(__dirname),
   images: {
-    domains: [
-      'images.unsplash.com', 
-      'via.placeholder.com', 
-      'ichef.bbci.co.uk',
-      'cdn.cnn.com',
-      'static.reuters.com',
-      'i.guim.co.uk'
+    remotePatterns: [
+      {
+          protocol: 'https',
+          hostname: 'images.unsplash.com',
+        },
+        {
+          protocol: 'https',
+          hostname: 'picsum.photos',
+        },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ichef.bbci.co.uk',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.cnn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.reuters.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.guim.co.uk',
+      }
     ],
     dangerouslyAllowSVG: true,
     // Extend CSP to allow loading images from self, data, and blob
