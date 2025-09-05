@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Image, { ImageProps } from 'next/image';
 import { cn } from '@/utils/cn';
+import { ImageFallback } from './ImageFallback';
 
 interface ProgressiveImageProps extends Omit<ImageProps, 'onLoad' | 'onError'> {
   lowSrc?: string; // Optional low-quality placeholder for blur effect
@@ -31,6 +32,7 @@ export function ProgressiveImage({
   const [hasError, setHasError] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [imageLoadAttempted, setImageLoadAttempted] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
 
   // Convert src to string for img elements
@@ -84,6 +86,8 @@ export function ProgressiveImage({
   const handleLoad = () => {
     setIsLoading(false);
     setShowFallback(false);
+    setHasError(false);
+    setImageLoadAttempted(true);
     externalOnLoad?.();
   };
 
@@ -91,20 +95,26 @@ export function ProgressiveImage({
     setHasError(true);
     setIsLoading(false);
     setShowFallback(true);
+    setImageLoadAttempted(true);
     externalOnError?.();
   };
 
   const handleFallbackError = () => {
     // If even the fallback fails, just show the placeholder
     setShowFallback(false);
+    setImageLoadAttempted(true);
   };
 
   const noImage = !src;
   const isLocalPreview = typeof src === 'string' && (src.startsWith('blob:') || src.startsWith('data:'));
   const isUnsplash = typeof src === 'string' && src.includes('images.unsplash.com');
+  const isBlobUrl = typeof src === 'string' && src.startsWith('blob:');
   
   // Auto-detect if image should be unoptimized
-  const shouldBeUnoptimized = unoptimized ?? isLocalPreview;
+  const shouldBeUnoptimized = unoptimized ?? (isLocalPreview || isUnsplash);
+  
+  // Force use of regular img tag for Unsplash URLs to avoid Next.js optimization issues
+  const forceRegularImg = isUnsplash;
 
   // Don't render anything until mounted to avoid hydration issues
   if (!mounted) {
@@ -118,32 +128,26 @@ export function ProgressiveImage({
   // Show placeholder only when there is no image at all
   if (noImage) {
     return (
-      <div
-        ref={imgRef}
-        className={cn('relative flex items-center justify-center overflow-hidden bg-gray-200 dark:bg-gray-700', className)}
-      >
-        <div className="text-gray-400 text-center p-4">
-          <svg
-            className="w-8 h-8 mx-auto mb-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-          <p className="text-xs">Image not available</p>
-        </div>
+      <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
+        <ImageFallback className="w-full h-full" />
       </div>
     );
   }
 
-  // Fallback to a plain <img> when using local preview (blob/data)
-  if (isLocalPreview) {
+  // Handle blob URLs that cause security errors
+  if (isBlobUrl) {
+    return (
+      <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
+        <ImageFallback 
+          className="w-full h-full" 
+          text="Preview not available"
+        />
+      </div>
+    );
+  }
+
+  // Fallback to a plain <img> when using local preview (data URLs only, not blob) or Unsplash URLs
+  if ((isLocalPreview && !isBlobUrl) || forceRegularImg) {
     return (
       <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
         {!isVisible && (
@@ -155,35 +159,32 @@ export function ProgressiveImage({
             )}
           </div>
         )}
-        {isVisible && isLoading && (
-          <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700">
-            {lowSrc && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600" />
-              </div>
-            )}
-          </div>
-        )}
         {isVisible && (
           <div className="relative w-full h-full" style={{ zIndex: 1 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={showFallback ? fallbackSrc : srcString}
-              alt={alt}
-              onLoad={handleLoad}
-              onError={showFallback ? handleFallbackError : handleError}
-              style={{
-                width: fill ? '100%' : (restProps.width ? `${restProps.width}px` : 'auto'),
-                height: fill ? '100%' : (restProps.height ? `${restProps.height}px` : 'auto'),
-                objectFit: fill ? 'cover' : undefined,
-                display: 'block'
-              }}
-            />
-            {/* Loading overlay on top of image */}
-            {isLoading && (
-              <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center" style={{ zIndex: 2 }}>
-                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 animate-pulse" />
-              </div>
+            {showFallback ? (
+              <ImageFallback className="w-full h-full" />
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={srcString}
+                  alt={alt}
+                  onLoad={handleLoad}
+                  onError={handleError}
+                  style={{
+                    width: fill ? '100%' : (restProps.width ? `${restProps.width}px` : 'auto'),
+                    height: fill ? '100%' : (restProps.height ? `${restProps.height}px` : 'auto'),
+                    objectFit: fill ? 'cover' : undefined,
+                    display: 'block'
+                  }}
+                />
+                {/* Loading overlay on top of image */}
+                {isLoading && !imageLoadAttempted && (
+                  <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center" style={{ zIndex: 2 }}>
+                    <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 animate-pulse" />
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
@@ -209,24 +210,30 @@ export function ProgressiveImage({
         {/* Actual fallback image - only render when visible */}
          {isVisible && (
            <div className="relative w-full h-full" style={{ zIndex: 1 }}>
-             {/* eslint-disable-next-line @next/next/no-img-element */}
-             <img
-               src={showFallback ? fallbackSrc : srcString}
-               alt={alt}
-               onLoad={handleLoad}
-               onError={showFallback ? handleFallbackError : () => setShowFallback(true)}
-               style={{
-                 width: fill ? '100%' : (restProps.width ? `${restProps.width}px` : 'auto'),
-                 height: fill ? '100%' : (restProps.height ? `${restProps.height}px` : 'auto'),
-                 objectFit: fill ? 'cover' : undefined,
-                 display: 'block'
-               }}
-             />
-             {/* Loading overlay on top of image */}
-             {isLoading && (
-               <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center" style={{ zIndex: 2 }}>
-                 <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 animate-pulse" />
-               </div>
+             {showFallback ? (
+               <ImageFallback className="w-full h-full" />
+             ) : (
+               <>
+                 {/* eslint-disable-next-line @next/next/no-img-element */}
+                 <img
+                   src={srcString}
+                   alt={alt}
+                   onLoad={handleLoad}
+                   onError={() => setShowFallback(true)}
+                   style={{
+                     width: fill ? '100%' : (restProps.width ? `${restProps.width}px` : 'auto'),
+                     height: fill ? '100%' : (restProps.height ? `${restProps.height}px` : 'auto'),
+                     objectFit: fill ? 'cover' : undefined,
+                     display: 'block'
+                   }}
+                 />
+                 {/* Loading overlay on top of image */}
+                 {isLoading && !imageLoadAttempted && (
+                   <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center" style={{ zIndex: 2 }}>
+                     <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 animate-pulse" />
+                   </div>
+                 )}
+               </>
              )}
            </div>
          )}

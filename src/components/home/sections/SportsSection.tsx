@@ -259,7 +259,7 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
             )}
           </div>
         )}
-        <div className="space-y-3 p-6 h-full flex flex-col bg-white dark:bg-gray-900">
+        <div className="space-y-3 p-6 h-full flex flex-col">
           <div className={cn(
             'relative w-full overflow-hidden',
             isFeatured ? 'aspect-[16/10]' : isCompact ? 'aspect-[4/3]' : 'aspect-[4/3]'
@@ -269,13 +269,13 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
               alt={article.title}
               width={isFeatured ? 600 : 400}
               height={isFeatured ? 375 : 300}
-              className="w-full h-full transition-transform duration-300 hover:scale-105"
+              className="w-full h-full transition-none"
               quality={95}
               fill
               sizes={isFeatured ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, 33vw"}
             />
             {/* Category overlay */}
-            <div className="absolute top-2 left-2">
+            <div className="absolute top-2 left-2 z-10">
               <span 
                 className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
                 style={{
@@ -299,6 +299,19 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
             )}>
               {article.excerpt}
             </p>
+            {/* Tags */}
+            {article.tags && article.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {article.tags.slice(0, 3).map((tag) => (
+                  <span 
+                    key={tag}
+                    className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-none shadow-none"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="text-xs news-meta mt-auto">
               {formatDistanceToNow(article.publishedAt, { addSuffix: true })}
             </div>
@@ -315,7 +328,7 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center">
               <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
-              <h2 className="text-xl font-black uppercase tracking-wide text-left text-deep-blue news-title">Sports</h2>
+              <h2 className="text-xl font-black uppercase tracking-wide text-left news-title">Sports</h2>
             </div>
             {isAdmin && (
               <button
@@ -382,7 +395,7 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
               <div className="mt-4 space-y-6">
                 {/* Layout Templates */}
                 <div>
-                  <div className="text-sm font-semibold mb-4 text-gray-800">Choose Your Layout Style</div>
+                  <div className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-300">Choose Your Layout Style</div>
                   <div className="w-full -mx-3">
                     <div className="flex flex-wrap gap-3 justify-stretch px-3">
                       {LAYOUT_TEMPLATES.map(template => {
@@ -432,7 +445,7 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
 
                 {/* Layout Preview */}
                 <div className="bg-white p-4 rounded-none border border-gray-200">
-                  <div className="text-sm font-semibold mb-3 text-gray-800">Layout Preview</div>
+                  <div className="text-sm font-semibold mb-3 text-gray-800 dark:text-gray-300">Layout Preview</div>
                   <div className={cn(
                     'grid gap-1 mb-3',
                     COLS_CLASS[selectedTemplate.config[bp]]

@@ -8,7 +8,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/utils/cn';
 import { useSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
-import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
+import Image from 'next/image';
 
 // Default featured articles used when no custom slides are saved yet
 const defaultSlides = [
@@ -326,20 +326,21 @@ export function HeroSection() {
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 1.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="absolute inset-0"
           >
             {currentArticle && (
               <>
                 {/* Image container with proper positioning for fill */}
                 <div className="relative w-full h-full bg-gray-800">
-                  <ProgressiveImage
+                  <Image
                     src={currentArticle.imageUrl}
                     alt={currentArticle.title}
                     fill
                     sizes="100vw"
-                    priority={currentSlide === 0}
-                    className="transition-transform duration-500 ease-out hover:scale-105"
+                    priority={true}
+                    unoptimized={true}
+                    className="transition-transform duration-500 ease-out hover:scale-105 object-cover"
                   />
                 </div>
                 
@@ -599,7 +600,7 @@ export function HeroSection() {
                     {/* Image preview */}
                     <div className="relative w-full overflow-hidden bg-gray-200" style={{ aspectRatio: '16/9' }}>
                       {s.imageUrl ? (
-                        <ProgressiveImage src={s.imageUrl} alt={s.title} fill className="object-cover" />
+                        <Image src={s.imageUrl} alt={s.title} fill className="object-cover" unoptimized={true} />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center text-gray-600 text-xs select-none">No image</div>
                       )}

@@ -66,12 +66,12 @@ export function Header() {
     setActiveSection(href);
     
     if (href === '#') {
-      // Smooth scroll to top with custom easing
+      // Ultra-smooth scroll to top with refined easing
       const scrollToTop = () => {
         const currentScroll = window.pageYOffset;
         if (currentScroll > 0) {
           window.requestAnimationFrame(scrollToTop);
-          window.scrollTo(0, currentScroll - (currentScroll / 8));
+          window.scrollTo(0, currentScroll - (currentScroll / 12)); // Smoother deceleration
         }
       };
       scrollToTop();
@@ -82,22 +82,22 @@ export function Header() {
         const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
         const offsetPosition = elementPosition - headerHeight;
         
-        // Enhanced smooth scrolling with custom easing
+        // Ultra-smooth scrolling with refined easing
         const startPosition = window.pageYOffset;
         const distance = offsetPosition - startPosition;
-        const duration = Math.min(Math.abs(distance) / 2, 800); // Dynamic duration based on distance
+        const duration = Math.min(Math.abs(distance) / 1.5, 1200); // Longer, smoother duration
         let start: number | null = null;
         
         const step = (timestamp: number) => {
           if (!start) start = timestamp;
           const progress = Math.min((timestamp - start) / duration, 1);
           
-          // Easing function for smoother animation
-          const easeInOutCubic = (t: number) => {
-            return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+          // Ultra-smooth easing function (ease-in-out-quart)
+          const easeInOutQuart = (t: number) => {
+            return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t;
           };
           
-          const easedProgress = easeInOutCubic(progress);
+          const easedProgress = easeInOutQuart(progress);
           window.scrollTo(0, startPosition + (distance * easedProgress));
           
           if (progress < 1) {
@@ -148,14 +148,17 @@ export function Header() {
             className="flex-shrink-0"
           >
             <Link href="/" className="flex items-center group">
-              <motion.span 
-                className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight transition-colors duration-200 group-hover:text-blue-600 dark:group-hover:text-blue-400"
+              <motion.span
+                className="text-2xl font-bold tracking-tight transition-colors duration-200 
+                          text-gray-900 dark:text-white"
                 whileHover={{ scale: 1.02 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                style={{ color: 'inherit' }} // ensures no inline override
               >
                 Veritas Bulletin
               </motion.span>
             </Link>
+
           </motion.div>
 
           {/* Desktop Navigation */}
@@ -165,7 +168,7 @@ export function Header() {
           />
 
           {/* Right side actions */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3 md:space-x-6 flex-shrink-0">
             {/* Search Button */}
             <Link href="/search">
               <motion.button
@@ -192,11 +195,11 @@ export function Header() {
                 <motion.button
                   whileHover={{ scale: 1.05, y: -1 }}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center space-x-3 p-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                  className="flex items-center space-x-2 p-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 whitespace-nowrap"
                   style={{ borderRadius: '0px', border: 'none', outline: 'none' }}
                 >
-                  <User className="w-5 h-5" />
-                  <span className="hidden sm:block text-sm font-medium">
+                  <User className="w-5 h-5 flex-shrink-0" />
+                  <span className="hidden md:block text-sm font-medium truncate max-w-24">
                     {session?.user?.name || 'User'}
                   </span>
                 </motion.button>
@@ -235,7 +238,7 @@ export function Header() {
                 onClick={() => setIsSignInModalOpen(true)}
                 whileHover={{ scale: 1.02, y: -1 }}
                 whileTap={{ scale: 0.98 }}
-                className="px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200"
+                className="px-4 md:px-6 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200 whitespace-nowrap flex-shrink-0"
                 style={{ borderRadius: '0px', border: 'none', outline: 'none' }}
               >
                 Sign In

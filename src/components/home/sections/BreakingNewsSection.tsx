@@ -280,7 +280,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center">
                 <div className="w-3 h-1 mr-2" style={{backgroundColor: '#000057'}}></div>
-                <h2 className="text-lg font-black uppercase tracking-wide text-left text-deep-blue news-title">Breaking News</h2>
+                <h2 className="text-lg font-black uppercase tracking-wide text-left news-title">Breaking News</h2>
               </div>
               {isAdmin && (
                 <button
@@ -347,7 +347,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
                 <div className="mt-3 space-y-4">
                   {/* Layout Templates */}
                   <div>
-                    <div className="text-sm font-semibold mb-3 text-gray-800">Choose Your Layout Style</div>
+                    <div className="text-sm font-semibold mb-3 text-gray-800 dark:text-gray-300">Choose Your Layout Style</div>
                     <div className="w-full -mx-2">
                       <div className="flex flex-wrap gap-2 justify-stretch px-2">
                         {LAYOUT_TEMPLATES.map(template => {
@@ -397,7 +397,7 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
 
                   {/* Layout Preview */}
                   <div className="bg-white p-3 border border-gray-200">
-                    <div className="text-sm font-semibold mb-2 text-gray-800">Layout Preview</div>
+                    <div className="text-sm font-semibold mb-2 text-gray-800 dark:text-gray-300">Layout Preview</div>
                     <div className={cn(
                       'grid gap-1 mb-2',
                       getGridClasses(selectedTemplate.config)
@@ -472,32 +472,76 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
 
         <div className="pt-4 px-4 pb-4">
           <div className="relative">
-            <div className={cn(
-              'grid gap-3 relative',
-              gridClasses
-            )}>
+            <div className="w-full relative flex flex-col">
               <GridOverlay />
-              {displayArticles.map((article, index) => {
-                const itemLayout = activeTemplate.itemLayouts?.[index];
-                const colSpanClasses = itemLayout ? getColSpanClasses(itemLayout.colSpan) : 'col-span-1';
-
-                return (
-                  <div key={article.id} className={cn('relative', colSpanClasses)}>
-                    <GridItem
-                      article={article}
-                      onReadMore={onReadMore}
-                      onEdit={onEdit}
-                      onEditBreaking={onEditBreaking}
-                      onDelete={onDelete}
-                      isAdmin={isAdmin}
-                      editingLayout={editingLayout}
-                      itemLayout={itemLayout}
-                      currentBreakpoint={currentBreakpoint}
-                      index={index}
-                    />
+              {(() => {
+                const articles = displayArticles;
+                const rows: Array<Array<{ article: Article; itemLayout?: ItemLayout; index: number }>> = [];
+                let currentRow: Array<{ article: Article; itemLayout?: ItemLayout; index: number }> = [];
+                let currentRowSpan = 0;
+                
+                articles.forEach((article, index) => {
+                  const itemLayout = activeTemplate.itemLayouts?.[index];
+                  const colSpan = itemLayout?.colSpan?.[currentBreakpoint] || 1;
+                  
+                  if (currentRowSpan + colSpan > gridMetrics.cols) {
+                    if (currentRow.length > 0) {
+                      rows.push([...currentRow]);
+                      currentRow = [];
+                      currentRowSpan = 0;
+                    }
+                  }
+                  
+                  currentRow.push({ article, itemLayout, index });
+                  currentRowSpan += colSpan;
+                  
+                  if (currentRowSpan >= gridMetrics.cols) {
+                    rows.push([...currentRow]);
+                    currentRow = [];
+                    currentRowSpan = 0;
+                  }
+                });
+                
+                if (currentRow.length > 0) {
+                  rows.push(currentRow);
+                }
+                
+                return rows.map((row, rowIndex) => (
+                  <div key={rowIndex} className="flex w-full relative">
+                    {row.map(({ article, itemLayout, index }, colIndex) => {
+                      const colSpan = itemLayout?.colSpan?.[currentBreakpoint] || 1;
+                      const widthPercentage = (colSpan / gridMetrics.cols) * 100;
+                      
+                      return (
+                        <div
+                          key={article.id}
+                          className="relative"
+                          style={{ width: `${widthPercentage}%` }}
+                        >
+                          <GridItem
+                            article={article}
+                            onReadMore={onReadMore}
+                            onEdit={onEdit}
+                            onEditBreaking={onEditBreaking}
+                            onDelete={onDelete}
+                            isAdmin={isAdmin}
+                            editingLayout={editingLayout}
+                            itemLayout={itemLayout}
+                            currentBreakpoint={currentBreakpoint}
+                            index={index}
+                          />
+                          {colIndex < row.length - 1 && (
+                            <div className="absolute top-0 right-0 w-px h-full bg-gray-200 dark:bg-gray-700" />
+                          )}
+                        </div>
+                      );
+                    })}
+                    {rowIndex < rows.length - 1 && (
+                      <div className="absolute bottom-0 left-4 right-4 h-px bg-gray-200 dark:bg-gray-700" />
+                    )}
                   </div>
-                );
-              })}
+                ));
+              })()}
             </div>
           </div>
         </div>
@@ -507,117 +551,136 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
 
   // GridItem component for rendering individual articles
   function GridItem({
-    article,
-    onReadMore,
-    onEdit,
-    onEditBreaking,
-    onDelete,
-    isAdmin,
-    editingLayout: _editingLayout,
-    itemLayout,
-    currentBreakpoint: _currentBreakpoint,
-    index: _index
-  }: {
-    article: Article;
-    onReadMore?: (article: Article) => void;
-    onEdit?: (article: Article) => void;
-    onEditBreaking?: (article: Article) => void;
-    onDelete?: (articleId: string) => void;
-    isAdmin: boolean;
-    editingLayout: boolean;
-    itemLayout?: ItemLayout;
-    currentBreakpoint: Breakpoint;
-    index: number;
-  }) {
-    const isFeatured = itemLayout?.priority === 'featured';
-    const isCompact = itemLayout?.priority === 'compact';
+      article,
+      onReadMore,
+      onEdit,
+      onEditBreaking,
+      onDelete,
+      isAdmin,
+      editingLayout: _editingLayout,
+      itemLayout,
+      currentBreakpoint: _currentBreakpoint,
+      index: _index
+    }: {
+      article: Article;
+      onReadMore?: (article: Article) => void;
+      onEdit?: (article: Article) => void;
+      onEditBreaking?: (article: Article) => void;
+      onDelete?: (articleId: string) => void;
+      isAdmin: boolean;
+      editingLayout: boolean;
+      itemLayout?: ItemLayout;
+      currentBreakpoint: Breakpoint;
+      index: number;
+    }) {
+      const isFeatured = itemLayout?.priority === 'featured';
+      const isCompact = itemLayout?.priority === 'compact';
 
-    return (
-      <div 
-        className="h-full transition-none" 
-        onClick={() => onReadMore?.(article)}
-      >
-        {isAdmin && (onEdit || onDelete) && (
-           <div className="w-full flex justify-end gap-1 mb-1">
-             {onEdit && (
-               <button
-                 type="button"
-                 className="px-1.5 py-0.5 text-xs font-semibold bg-black text-white"
-                 onClick={(e) => { e.stopPropagation(); (onEditBreaking ?? onEdit)(article); }}
-                 aria-label={`Edit ${article.title}`}
-               >
-                 Save
-               </button>
-             )}
-             {onDelete && (
-               <button
-                 type="button"
-                 className="px-1.5 py-0.5 text-xs font-semibold bg-red-600 text-white hover:bg-red-700"
-                 onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
-                 aria-label={`Remove ${article.title}`}
-               >
-                 Remove
-               </button>
-             )}
-           </div>
-         )}
-        <div className="space-y-3 p-5 h-full flex flex-col bg-white dark:bg-gray-900 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-           <div className={cn(
-             'relative w-full overflow-hidden',
-             isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'
-           )}>
-             <ProgressiveImage
-               src={article.imageUrl || ''}
-               alt={article.title}
-               className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-               fill
-             />
-             {/* Category overlay */}
-             <div className="absolute top-2 left-2">
-               <span 
-                 className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
-                 style={{
-                   background: article.category === 'Technology' ? 'linear-gradient(90deg, #3b82f6, #1d4ed8)' :
+      return (
+        <div 
+          className="h-full transition-none" 
+          onClick={() => onReadMore?.(article)}
+        >
+          {isAdmin && (onEdit || onDelete) && (
+            <div className="w-full flex justify-end gap-1 mb-1">
+              {onEdit && (
+                <button
+                  type="button"
+                  className="px-1.5 py-0.5 text-xs font-semibold bg-black text-white"
+                  onClick={(e) => { e.stopPropagation(); (onEditBreaking ?? onEdit)(article); }}
+                  aria-label={`Edit ${article.title}`}
+                >
+                  Save
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  className="px-1.5 py-0.5 text-xs font-semibold bg-red-600 text-white hover:bg-red-700"
+                  onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
+                  aria-label={`Remove ${article.title}`}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          )}
+          <div className="space-y-3 p-5 h-full flex flex-col">
+            <div className={cn(
+              'relative w-full overflow-hidden',
+              isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'
+            )}>
+              <ProgressiveImage
+                src={article.imageUrl || ''}
+                alt={article.title}
+                className="w-full h-full object-cover transition-none"
+                fill
+              />
+              {/* Category overlay */}
+              <div className="absolute top-2 left-2 z-10">
+                <span 
+                  className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
+                  style={{
+                    background: article.category === 'Technology' ? 'linear-gradient(90deg, #3b82f6, #1d4ed8)' :
                               article.category === 'Environment' ? 'linear-gradient(90deg, #22c55e, #16a34a)' :
                               article.category === 'Business' ? 'linear-gradient(90deg, #a855f7, #7c3aed)' :
                               article.category === 'Politics' ? 'linear-gradient(90deg, #ef4444, #dc2626)' :
                               article.category === 'Sports' ? 'linear-gradient(90deg, #f97316, #ea580c)' :
                               article.category === 'Entertainment' ? 'linear-gradient(90deg, #ec4899, #db2777)' :
                               'linear-gradient(90deg, #6b7280, #4b5563)'
-                 }}
-               >
-                 {article.category}
-               </span>
-             </div>
-           </div>
-           <div className="flex-1 flex flex-col justify-between">
-             <div>
-               <h3 className={cn(
-                 'font-bold leading-tight mb-2 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200',
-                 isFeatured ? 'text-xl' : isCompact ? 'text-sm' : 'text-base'
-               )}>
-                 {article.title}
-               </h3>
-               {!isCompact && (
-                 <p className={cn(
-                   'text-gray-600 dark:text-gray-300 font-sans mb-3 line-clamp-2 leading-relaxed',
-                   isFeatured ? 'text-base' : 'text-sm'
-                 )}>
-                   {article.excerpt}
-                 </p>
-               )}
-             </div>
-             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-               <div className="flex items-center space-x-2">
-                 <div className="w-2 h-2 bg-blue-500 opacity-60"></div>
-                 <span className="font-medium">{article.author || 'Staff Writer'}</span>
-               </div>
-               <time className="text-xs font-medium">{mounted ? formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true }) : ''}</time>
-             </div>
-           </div>
-         </div>
-      </div>
-    );
-  }
+                  }}
+                >
+                  {article.category}
+                </span>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col justify-between">
+              <div>
+                <h3
+                  className={cn(
+                    'font-bold mb-2 transition-colors duration-200 text-base text-gray-900 dark:text-white dark:!text-white',
+                    isFeatured ? 'text-xl' : isCompact ? 'text-sm' : ''
+                  )}
+                  style={{ color: 'inherit' }} // ensures inline style doesn’t override Tailwind
+                >
+                  {article.title}
+                </h3>
+
+
+                {!isCompact && (
+                  <p className={cn(
+                    'text-gray-600 dark:!text-white font-sans mb-3 line-clamp-2 leading-relaxed',
+                    isFeatured ? 'text-base' : 'text-sm'
+                  )}>
+                    {article.excerpt}
+                  </p>
+                )}
+              </div>
+              {/* Tags */}
+              {article.tags && article.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {article.tags.slice(0, 3).map((tag) => (
+                    <span 
+                      key={tag}
+                      className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:!text-white"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:!text-white">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-blue-500 opacity-60"></div>
+                  <span className="font-medium">{article.author || 'Staff Writer'}</span>
+                </div>
+                <time className="text-xs font-medium">{formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}</time>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
 
 }

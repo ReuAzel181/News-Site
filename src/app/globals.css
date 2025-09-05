@@ -23,7 +23,7 @@
   --ring: #2563eb;
   --radius: 0.5rem;
   /* News text color variables (light mode) */
-  --news-title-color: #111111;
+  --news-title-color: #000057;
   --news-content-color: rgba(17, 17, 17, 0.8);
   --news-meta-color: #111111;
   /* News typography spacing variables */

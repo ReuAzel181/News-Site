@@ -299,7 +299,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
                 <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
-                <h2 className="text-xl font-black uppercase tracking-wide text-left text-deep-blue news-title">Featured Videos</h2>
+                <h2 className="text-xl font-black uppercase tracking-wide text-left news-title">Featured Videos</h2>
               </div>
               {isAdmin && (
                 <button
@@ -395,7 +395,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
                     </div>
                   </div>
                   <div className="mt-4">
-                    <div className="text-sm font-semibold mb-4 text-gray-800">Choose Your Video Layout Style</div>
+                    <div className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-300">Choose Your Video Layout Style</div>
                     <div className="w-full -mx-3">
                       <div className="flex flex-wrap gap-3 justify-stretch px-3">
                         {LAYOUT_TEMPLATES.map(template => {
@@ -582,7 +582,7 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
             )}
           </div>
         )}
-        <div className="space-y-3 p-6 h-full flex flex-col rounded-none shadow-none ring-0 outline-none transition-none bg-white dark:bg-gray-900">
+        <div className="space-y-3 p-6 h-full flex flex-col rounded-none shadow-none ring-0 outline-none transition-none">
           <div className={cn(
             'relative w-full bg-gray-200 rounded-none',
             isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'

@@ -265,7 +265,7 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
             )}
           </div>
         )}
-        <div className="space-y-3 p-5 h-full flex flex-col bg-white dark:bg-gray-900 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+        <div className="space-y-3 p-5 h-full flex flex-col">
           <div className={cn(
             'relative w-full overflow-hidden',
             isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'
@@ -273,11 +273,11 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
             <ProgressiveImage
               src={article.imageUrl || ''}
               alt={article.title}
-              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              className="w-full h-full object-cover transition-none"
               fill
             />
             {/* Category overlay */}
-            <div className="absolute top-2 left-2">
+            <div className="absolute top-2 left-2 z-10">
               <span 
                 className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
                 style={{
@@ -296,12 +296,16 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
           </div>
           <div className="flex-1 flex flex-col justify-between">
             <div>
-              <h3 className={cn(
-                'font-bold leading-tight mb-2 text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200',
-                isFeatured ? 'text-xl' : isCompact ? 'text-sm' : 'text-base'
-              )}>
+              <h3
+                className={cn(
+                  'font-bold mb-2 transition-colors duration-200 text-base text-gray-900 dark:text-white dark:!text-white',
+                  isFeatured ? 'text-xl' : isCompact ? 'text-sm' : ''
+                )}
+                style={{ color: 'inherit' }} // ensures inline style doesn’t override Tailwind
+              >
                 {article.title}
               </h3>
+            
               {!isCompact && (
                 <p className={cn(
                   'text-gray-600 dark:text-gray-300 font-sans mb-3 line-clamp-2 leading-relaxed',
@@ -311,6 +315,19 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
                 </p>
               )}
             </div>
+            {/* Tags */}
+            {article.tags && article.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {article.tags.slice(0, 3).map((tag) => (
+                  <span 
+                    key={tag}
+                    className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-blue-500 opacity-60"></div>
@@ -331,7 +348,7 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center">
               <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
-              <h2 className="text-xl font-black uppercase tracking-wide text-left text-deep-blue news-title">Technology</h2>
+              <h2 className="text-xl font-black uppercase tracking-wide text-left news-title">Technology</h2>
             </div>
             {isAdmin && (
               <button
@@ -398,7 +415,7 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
               <div className="mt-4 space-y-6">
                 {/* Layout Templates */}
                 <div>
-                  <div className="text-sm font-semibold mb-4 text-gray-800">Choose Your Layout Style</div>
+                  <div className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-300">Choose Your Layout Style</div>
                   <div className="w-full -mx-3">
                     <div className="flex flex-wrap gap-3 justify-stretch px-3">
                       {LAYOUT_TEMPLATES.map(template => {
@@ -448,7 +465,7 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
 
                 {/* Layout Preview */}
                 <div className="bg-white p-4 rounded-none border border-gray-200">
-                  <div className="text-sm font-semibold mb-3 text-gray-800">Layout Preview</div>
+                  <div className="text-sm font-semibold mb-3 text-gray-800 dark:text-gray-300">Layout Preview</div>
                   <div className={cn(
                     'grid gap-1 mb-3',
                     COLS_CLASS[selectedTemplate.config[bp]]
@@ -509,32 +526,76 @@ export function TechnologySection({ articles, onReadMore, onEdit, onDelete }: Te
 
       <div className="pt-4 px-4 pb-4">
         <div className="relative">
-          <div className={cn(
-            'grid gap-3 relative',
-            gridClass
-          )}>
-            {techNews.slice(0, Math.min(itemCount, techNews.length)).map((article, index) => {
-              const itemLayout = selectedTemplate.itemLayouts?.[index];
-              const colSpanClasses = itemLayout ? COL_SPAN_CLASS[itemLayout.colSpan[bp]] : 'col-span-1';
-
-              return (
-                <div key={article.id} className={cn('relative', colSpanClasses)}>
-                  <GridItem
-                    article={article}
-                    onReadMore={onReadMore}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    isAdmin={isAdmin}
-                    editingLayout={editingLayout}
-                    itemLayout={itemLayout}
-                    currentBreakpoint={bp}
-                    templateName={selectedTemplate.name}
-                    index={index}
-                    totalItems={Math.min(techNews.length, itemCount)}
-                  />
+          <div className="w-full relative flex flex-col">
+            {(() => {
+              const articles = techNews.slice(0, Math.min(itemCount, techNews.length));
+              const rows: Array<Array<{ article: Article; itemLayout?: ItemLayout; index: number }>> = [];
+              let currentRow: Array<{ article: Article; itemLayout?: ItemLayout; index: number }> = [];
+              let currentRowSpan = 0;
+              
+              articles.forEach((article, index) => {
+                const itemLayout = selectedTemplate.itemLayouts?.[index];
+                const colSpan = itemLayout?.colSpan?.[bp] || 1;
+                
+                if (currentRowSpan + colSpan > gridMetrics.cols) {
+                  if (currentRow.length > 0) {
+                    rows.push([...currentRow]);
+                    currentRow = [];
+                    currentRowSpan = 0;
+                  }
+                }
+                
+                currentRow.push({ article, itemLayout, index });
+                currentRowSpan += colSpan;
+                
+                if (currentRowSpan >= gridMetrics.cols) {
+                  rows.push([...currentRow]);
+                  currentRow = [];
+                  currentRowSpan = 0;
+                }
+              });
+              
+              if (currentRow.length > 0) {
+                rows.push(currentRow);
+              }
+              
+              return rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex w-full relative">
+                  {row.map(({ article, itemLayout, index }, colIndex) => {
+                    const colSpan = itemLayout?.colSpan?.[bp] || 1;
+                    const widthPercentage = (colSpan / gridMetrics.cols) * 100;
+                    
+                    return (
+                      <div
+                        key={article.id}
+                        className="relative"
+                        style={{ width: `${widthPercentage}%` }}
+                      >
+                        <GridItem
+                          article={article}
+                          onReadMore={onReadMore}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          isAdmin={isAdmin}
+                          editingLayout={editingLayout}
+                          itemLayout={itemLayout}
+                          currentBreakpoint={bp}
+                          templateName={selectedTemplate.name}
+                          index={index}
+                          totalItems={Math.min(techNews.length, itemCount)}
+                        />
+                        {colIndex < row.length - 1 && (
+                          <div className="absolute top-0 right-0 w-px h-full bg-gray-200 dark:bg-gray-700" />
+                        )}
+                      </div>
+                    );
+                  })}
+                  {rowIndex < rows.length - 1 && (
+                    <div className="absolute bottom-0 left-4 right-4 h-px bg-gray-200 dark:bg-gray-700" />
+                  )}
                 </div>
-              );
-            })}
+              ));
+            })()}
           </div>
         </div>
       </div>

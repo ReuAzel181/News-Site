@@ -166,6 +166,53 @@ const isValidImageUrl = (url: string): boolean => {
   return imageExtensions.test(url) || imageServices.test(url);
 };
 
+// Enhanced tag extraction function
+const extractTags = (title: string, description: string, category: string): string[] => {
+  const content = `${title} ${description}`.toLowerCase();
+  const tags = [category.toLowerCase()];
+  
+  // Business tags
+  if (content.includes('market') || content.includes('stock')) tags.push('markets');
+  if (content.includes('finance') || content.includes('financial')) tags.push('finance');
+  if (content.includes('investment') || content.includes('investor')) tags.push('investment');
+  if (content.includes('economy') || content.includes('economic')) tags.push('economy');
+  if (content.includes('bank') || content.includes('banking')) tags.push('banking');
+  if (content.includes('trade') || content.includes('trading')) tags.push('trade');
+  
+  // Technology tags
+  if (content.includes('ai') || content.includes('artificial intelligence')) tags.push('ai');
+  if (content.includes('software') || content.includes('app')) tags.push('software');
+  if (content.includes('cyber') || content.includes('security')) tags.push('cybersecurity');
+  if (content.includes('data') || content.includes('analytics')) tags.push('data');
+  if (content.includes('innovation') || content.includes('startup')) tags.push('innovation');
+  if (content.includes('digital') || content.includes('internet')) tags.push('digital');
+  
+  // Sports tags
+  if (content.includes('football') || content.includes('nfl')) tags.push('football');
+  if (content.includes('basketball') || content.includes('nba')) tags.push('basketball');
+  if (content.includes('soccer') || content.includes('fifa')) tags.push('soccer');
+  if (content.includes('tennis') || content.includes('wimbledon')) tags.push('tennis');
+  if (content.includes('olympics') || content.includes('olympic')) tags.push('olympics');
+  if (content.includes('championship') || content.includes('finals')) tags.push('championship');
+  
+  // Health & Lifestyle tags
+  if (content.includes('health') || content.includes('medical')) tags.push('health');
+  if (content.includes('fitness') || content.includes('exercise')) tags.push('fitness');
+  if (content.includes('food') || content.includes('nutrition')) tags.push('food');
+  if (content.includes('travel') || content.includes('tourism')) tags.push('travel');
+  if (content.includes('entertainment') || content.includes('celebrity')) tags.push('entertainment');
+  if (content.includes('culture') || content.includes('art')) tags.push('culture');
+  
+  // General tags
+  if (content.includes('climate') || content.includes('environment')) tags.push('environment');
+  if (content.includes('education') || content.includes('school')) tags.push('education');
+  if (content.includes('research') || content.includes('study')) tags.push('research');
+  if (content.includes('global') || content.includes('international')) tags.push('global');
+  
+  // Remove duplicates and return up to 3 tags
+  return [...new Set(tags)].slice(0, 3);
+};
+
 const convertRSSToArticle = (item: RSSItem, index: number, source?: string): Article | null => {
   const category = categorizeArticle(item.title, item.description, source);
   
@@ -201,6 +248,9 @@ const convertRSSToArticle = (item: RSSItem, index: number, source?: string): Art
   const urlHash = simpleHash(item.link || '');
   const uniqueId = `${source || 'rss'}-${titleHash}-${urlHash}-${++articleIdCounter}`;
 
+  // Extract relevant tags from content
+  const tags = extractTags(item.title, item.description, category);
+
   return {
     id: uniqueId,
     title: item.title,
@@ -212,7 +262,7 @@ const convertRSSToArticle = (item: RSSItem, index: number, source?: string): Art
     publishedAt: new Date(item.pubDate),
     featured: index < 2, // Mark first 2 articles as featured
     slug: item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-    tags: [category.toLowerCase()],
+    tags,
     views: Math.floor(Math.random() * 10000) + 1000, // Random view count
     likes: Math.floor(Math.random() * 500) + 50,
     url: item.link,
