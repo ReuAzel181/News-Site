@@ -148,15 +148,12 @@ export function Header() {
             className="flex-shrink-0"
           >
             <Link href="/" className="flex items-center group">
-              <motion.span
-                className="text-2xl font-bold tracking-tight transition-colors duration-200 
-                          text-gray-900 dark:text-white"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                style={{ color: 'inherit' }} // ensures no inline override
-              >
-                Veritas Bulletin
-              </motion.span>
+              <span 
+                 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight transition-colors duration-200 hover:text-blue-600 dark:hover:text-blue-400 hover:scale-105 transform transition-transform"
+                 suppressHydrationWarning={true}
+               >
+                 Veritas Bulletin
+               </span>
             </Link>
 
           </motion.div>

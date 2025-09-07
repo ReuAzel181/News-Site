@@ -417,6 +417,7 @@ export function HeroSection() {
                                currentArticle.category === 'Entertainment' ? 'linear-gradient(90deg, #ec4899, #db2777)' :
                                'linear-gradient(90deg, #6b7280, #4b5563)'
                   }}
+                  suppressHydrationWarning={true}
                 >
                   {currentArticle.category}
                 </motion.span>
