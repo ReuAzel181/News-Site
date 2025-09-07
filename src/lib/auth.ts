@@ -14,29 +14,43 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        const credPath = path.join(process.cwd(), 'admin.credentials.json');
-        try {
-          const raw = fs.readFileSync(credPath, 'utf8');
-          const { username, password } = JSON.parse(raw) as { username: string; password: string };
-          if (
-            credentials?.username &&
-            credentials?.password &&
-            credentials.username === username &&
-            credentials.password === password
-          ) {
-            return {
-              id: 'admin-file-user',
-              email: 'admin@local',
-              name: 'Admin',
-              role: 'ADMIN',
-              image: null
-            };
+        // Use environment variables for production, fallback to file for development
+        let adminUsername: string;
+        let adminPassword: string;
+
+        if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
+          // Production: use environment variables
+          adminUsername = process.env.ADMIN_USERNAME;
+          adminPassword = process.env.ADMIN_PASSWORD;
+        } else {
+          // Development: try to read from file
+          try {
+            const credPath = path.join(process.cwd(), 'admin.credentials.json');
+            const raw = fs.readFileSync(credPath, 'utf8');
+            const { username, password } = JSON.parse(raw) as { username: string; password: string };
+            adminUsername = username;
+            adminPassword = password;
+          } catch (e) {
+            console.error('Failed to read admin credentials file and no environment variables set:', e);
+            return null;
           }
-          return null;
-        } catch (e) {
-          console.error('Failed to read admin credentials file:', e);
-          return null;
         }
+
+        if (
+          credentials?.username &&
+          credentials?.password &&
+          credentials.username === adminUsername &&
+          credentials.password === adminPassword
+        ) {
+          return {
+            id: 'admin-user',
+            email: 'admin@local',
+            name: 'Admin',
+            role: 'ADMIN',
+            image: null
+          };
+        }
+        return null;
       }
     })
   ],
