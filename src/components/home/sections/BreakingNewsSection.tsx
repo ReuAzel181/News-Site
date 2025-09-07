@@ -551,136 +551,165 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
 
   // GridItem component for rendering individual articles
   function GridItem({
-      article,
-      onReadMore,
-      onEdit,
-      onEditBreaking,
-      onDelete,
-      isAdmin,
-      editingLayout: _editingLayout,
-      itemLayout,
-      currentBreakpoint: _currentBreakpoint,
-      index: _index
-    }: {
-      article: Article;
-      onReadMore?: (article: Article) => void;
-      onEdit?: (article: Article) => void;
-      onEditBreaking?: (article: Article) => void;
-      onDelete?: (articleId: string) => void;
-      isAdmin: boolean;
-      editingLayout: boolean;
-      itemLayout?: ItemLayout;
-      currentBreakpoint: Breakpoint;
-      index: number;
-    }) {
-      const isFeatured = itemLayout?.priority === 'featured';
-      const isCompact = itemLayout?.priority === 'compact';
+    article,
+    onReadMore,
+    onEdit,
+    onEditBreaking,
+    onDelete,
+    isAdmin,
+    editingLayout: _editingLayout,
+    itemLayout,
+    currentBreakpoint: _currentBreakpoint,
+    index: _index
+  }: {
+    article: Article;
+    onReadMore?: (article: Article) => void;
+    onEdit?: (article: Article) => void;
+    onEditBreaking?: (article: Article) => void;
+    onDelete?: (articleId: string) => void;
+    isAdmin: boolean;
+    editingLayout: boolean;
+    itemLayout?: ItemLayout;
+    currentBreakpoint: Breakpoint;
+    index: number;
+  }) {
+    const isFeatured = itemLayout?.priority === 'featured';
+    const isCompact = itemLayout?.priority === 'compact';
 
-      return (
-        <div 
-          className="h-full transition-none" 
-          onClick={() => onReadMore?.(article)}
-        >
-          {isAdmin && (onEdit || onDelete) && (
-            <div className="w-full flex justify-end gap-1 mb-1">
-              {onEdit && (
-                <button
-                  type="button"
-                  className="px-1.5 py-0.5 text-xs font-semibold bg-black text-white"
-                  onClick={(e) => { e.stopPropagation(); (onEditBreaking ?? onEdit)(article); }}
-                  aria-label={`Edit ${article.title}`}
-                >
-                  Save
-                </button>
-              )}
-              {onDelete && (
-                <button
-                  type="button"
-                  className="px-1.5 py-0.5 text-xs font-semibold bg-red-600 text-white hover:bg-red-700"
-                  onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
-                  aria-label={`Remove ${article.title}`}
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-          )}
-          <div className="space-y-3 p-5 h-full flex flex-col">
-            <div className={cn(
+    // ✅ Default delete handler for admins if none is passed
+    const handleDelete = (id: string) => {
+      if (onDelete) {
+        onDelete(id);
+      } else {
+        console.warn(`No onDelete prop provided. Deleting article ${id} by default handler.`);
+        // example default behavior: remove from DOM
+        document.getElementById(id)?.remove();
+      }
+    };
+
+    return (
+      <div
+        className="h-full transition-none"
+        onClick={() => onReadMore?.(article)}
+        id={article.id}
+      >
+        {isAdmin && (
+          <div className="w-full flex justify-end gap-1 mb-1">
+            {onEdit && (
+              <button
+                type="button"
+                className="px-1.5 py-0.5 text-xs font-semibold bg-black text-white"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  (onEditBreaking ?? onEdit)(article);
+                }}
+                aria-label={`Edit ${article.title}`}
+              >
+                Edit
+              </button>
+            )}
+            <button
+              type="button"
+              className="px-1.5 py-0.5 text-xs font-semibold bg-red-600 text-white hover:bg-red-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(article.id);
+              }}
+              aria-label={`Remove ${article.title}`}
+            >
+              Remove
+            </button>
+          </div>
+        )}
+
+        <div className="space-y-3 p-5 h-full flex flex-col">
+          <div
+            className={cn(
               'relative w-full overflow-hidden',
               isFeatured ? 'aspect-[16/9]' : isCompact ? 'aspect-[4/3]' : 'aspect-[3/2]'
-            )}>
-              <ProgressiveImage
-                src={article.imageUrl || ''}
-                alt={article.title}
-                className="w-full h-full object-cover transition-none"
-                fill
-              />
-              {/* Category overlay */}
-              <div className="absolute top-2 left-2 z-10">
-                <span 
-                  className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
-                  style={{
-                    background: article.category === 'Technology' ? 'linear-gradient(90deg, #3b82f6, #1d4ed8)' :
-                              article.category === 'Environment' ? 'linear-gradient(90deg, #22c55e, #16a34a)' :
-                              article.category === 'Business' ? 'linear-gradient(90deg, #a855f7, #7c3aed)' :
-                              article.category === 'Politics' ? 'linear-gradient(90deg, #ef4444, #dc2626)' :
-                              article.category === 'Sports' ? 'linear-gradient(90deg, #f97316, #ea580c)' :
-                              article.category === 'Entertainment' ? 'linear-gradient(90deg, #ec4899, #db2777)' :
-                              'linear-gradient(90deg, #6b7280, #4b5563)'
-                  }}
-                >
-                  {article.category}
-                </span>
-              </div>
+            )}
+          >
+            <ProgressiveImage
+              src={article.imageUrl || ''}
+              alt={article.title}
+              className="w-full h-full object-cover transition-none"
+              fill
+            />
+            {/* Category overlay */}
+            <div className="absolute top-2 left-2 z-10">
+              <span
+                className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
+                style={{
+                  background:
+                    article.category === 'Technology'
+                      ? 'linear-gradient(90deg, #3b82f6, #1d4ed8)'
+                      : article.category === 'Environment'
+                      ? 'linear-gradient(90deg, #22c55e, #16a34a)'
+                      : article.category === 'Business'
+                      ? 'linear-gradient(90deg, #a855f7, #7c3aed)'
+                      : article.category === 'Politics'
+                      ? 'linear-gradient(90deg, #ef4444, #dc2626)'
+                      : article.category === 'Sports'
+                      ? 'linear-gradient(90deg, #f97316, #ea580c)'
+                      : article.category === 'Entertainment'
+                      ? 'linear-gradient(90deg, #ec4899, #db2777)'
+                      : 'linear-gradient(90deg, #6b7280, #4b5563)'
+                }}
+              >
+                {article.category}
+              </span>
             </div>
-            <div className="flex-1 flex flex-col justify-between">
-              <div>
-                <h3
+          </div>
+          <div className="flex-1 flex flex-col justify-between">
+            <div>
+              <h3
+                className={cn(
+                  'font-bold mb-2 transition-colors duration-200 text-base text-gray-900 dark:text-white dark:!text-white',
+                  isFeatured ? 'text-xl' : isCompact ? 'text-sm' : ''
+                )}
+                style={{ color: 'inherit' }}
+              >
+                {article.title}
+              </h3>
+
+              {!isCompact && (
+                <p
                   className={cn(
-                    'font-bold mb-2 transition-colors duration-200 text-base text-gray-900 dark:text-white dark:!text-white',
-                    isFeatured ? 'text-xl' : isCompact ? 'text-sm' : ''
-                  )}
-                  style={{ color: 'inherit' }} // ensures inline style doesn’t override Tailwind
-                >
-                  {article.title}
-                </h3>
-
-
-                {!isCompact && (
-                  <p className={cn(
                     'text-gray-600 dark:!text-white font-sans mb-3 line-clamp-2 leading-relaxed',
                     isFeatured ? 'text-base' : 'text-sm'
-                  )}>
-                    {article.excerpt}
-                  </p>
-                )}
-              </div>
-              {/* Tags */}
-              {article.tags && article.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {article.tags.slice(0, 3).map((tag) => (
-                    <span 
-                      key={tag}
-                      className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:!text-white"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
+                  )}
+                >
+                  {article.excerpt}
+                </p>
               )}
-              <div className="flex items-center justify-between text-xs text-gray-500 dark:!text-white">
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-blue-500 opacity-60"></div>
-                  <span className="font-medium">{article.author || 'Staff Writer'}</span>
-                </div>
-                <time className="text-xs font-medium">{formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}</time>
+            </div>
+            {article.tags && article.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {article.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:!text-white"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
+            )}
+            <div className="flex items-center justify-between text-xs text-gray-500 dark:!text-white">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 opacity-60"></div>
+                <span className="font-medium">{article.author || 'Staff Writer'}</span>
+              </div>
+              <time className="text-xs font-medium">
+                {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
+              </time>
             </div>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
+  }
+
 
 
 }
