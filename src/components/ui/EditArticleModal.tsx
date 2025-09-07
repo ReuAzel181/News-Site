@@ -87,9 +87,31 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
   };
   const tagColor = (tag: string) => TAG_COLORS[hashString(tag) % TAG_COLORS.length];
 
-  const handleSave = () => {
-    // tags already in draft.tags
-    onSave({ ...draft });
+  const handleSave = async () => {
+    const finalArticle = { ...draft };
+
+    if (localImageFile) {
+      try {
+        const formData = new FormData();
+        formData.append("file", localImageFile);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json?.url) {
+            finalArticle.imageUrl = json.url as string;
+          }
+        } else {
+          console.error("Upload failed", await res.text());
+        }
+      } catch (e) {
+        console.error("Upload error", e);
+      }
+    }
+
+    onSave(finalArticle);
   };
 
   return (
