@@ -109,6 +109,7 @@ NEXTAUTH_URL=https://your-domain.vercel.app
 NEXTAUTH_SECRET=your-generated-secret
 DATABASE_URL=your-database-url
 NODE_ENV=production
+BLOB_READ_WRITE_TOKEN=your-blob-token
 ```
 
 ## License

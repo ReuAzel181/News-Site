@@ -4,8 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import path from 'path';
-import fs from 'fs/promises';
+import { put } from '@vercel/blob';
 
 const ALLOWED_TYPES = new Set([
   'image/jpeg',
@@ -54,28 +53,24 @@ export async function POST(req: NextRequest) {
       return new NextResponse('Unsupported file type', { status: 415 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     // Limit max size to ~10MB
     const MAX_BYTES = 10 * 1024 * 1024;
-    if (buffer.byteLength > MAX_BYTES) {
+    if (file.size > MAX_BYTES) {
       return new NextResponse('File too large (max 10MB)', { status: 413 });
     }
 
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    await fs.mkdir(uploadsDir, { recursive: true });
-
+    // Generate filename
     const baseName = file.name ? String(file.name) : 'upload';
-    const extFromName = path.extname(baseName);
+    const extFromName = baseName.includes('.') ? baseName.substring(baseName.lastIndexOf('.')) : '';
     const ext = extFromName || getExtensionFromType(file.type);
-
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
-    const filePath = path.join(uploadsDir, filename);
-    await fs.writeFile(filePath, buffer);
 
-    const publicUrl = `/uploads/${filename}`;
-    return NextResponse.json({ success: true, url: publicUrl });
+    // Upload to Vercel Blob
+    const blob = await put(filename, file, {
+      access: 'public',
+    });
+
+    return NextResponse.json({ success: true, url: blob.url });
   } catch (err) {
     console.error('Upload failed:', err);
     return new NextResponse('Internal Server Error', { status: 500 });

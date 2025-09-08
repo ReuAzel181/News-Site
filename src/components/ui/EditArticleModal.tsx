@@ -38,6 +38,14 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
 
   const handleChange = (field: keyof Article, value: Article[keyof Article]) => {
     setDraft(prev => ({ ...prev, [field]: value }));
+    // If user manually enters an image URL, clear the local file
+    if (field === 'imageUrl' && value) {
+      if (localImageUrl) {
+        URL.revokeObjectURL(localImageUrl);
+        setLocalImageUrl(null);
+        setLocalImageFile(null);
+      }
+    }
   };
 
   const handleAddTag = () => {
@@ -72,7 +80,8 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
     const url = URL.createObjectURL(file);
     setLocalImageFile(file);
     setLocalImageUrl(url);
-    setDraft(prev => ({ ...prev, imageUrl: url }));
+    // Don't set the blob URL to draft.imageUrl - keep it separate for preview
+    // The actual URL will be set after upload in handleSave
   };
 
   // simple deterministic color palette for tags
@@ -170,9 +179,9 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
               <div className="space-y-4">
                 {/* Image Preview */}
                 <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center overflow-hidden">
-                  {draft.imageUrl ? (
+                  {(localImageUrl || draft.imageUrl) ? (
                     <ProgressiveImage 
-                      src={draft.imageUrl} 
+                      src={localImageUrl || draft.imageUrl} 
                       alt={draft.title} 
                       className="w-full h-full object-cover" 
                       fill 

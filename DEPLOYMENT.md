@@ -23,6 +23,11 @@ For production deployment, you need to set the following environment variables:
 4. **NODE_ENV**
    - Set to `production` for production builds
 
+5. **BLOB_READ_WRITE_TOKEN**
+   - Required for Vercel Blob storage (file uploads)
+   - Automatically provided by Vercel when you enable Blob storage
+   - For local development, you can get this from your Vercel dashboard
+
 ### Vercel Deployment
 
 1. In your Vercel dashboard, go to your project settings
@@ -33,7 +38,14 @@ For production deployment, you need to set the following environment variables:
    NEXTAUTH_SECRET=your-generated-secret
    DATABASE_URL=your-database-url
    NODE_ENV=production
+   BLOB_READ_WRITE_TOKEN=your-blob-token
    ```
+
+4. Enable Vercel Blob storage:
+   - In your Vercel dashboard, go to your project
+   - Navigate to "Storage" tab
+   - Click "Create Database" and select "Blob"
+   - The `BLOB_READ_WRITE_TOKEN` will be automatically added to your environment variables
 
 ### Authentication Setup
 
@@ -61,3 +73,8 @@ The application uses file-based authentication with credentials stored in `admin
 3. **Database Connection Issues**
    - Ensure `DATABASE_URL` is correctly formatted
    - For SQLite in production, consider using a persistent storage solution
+
+4. **File Upload Issues (500 Internal Server Error)**
+   - Ensure Vercel Blob storage is enabled in your project
+   - Verify `BLOB_READ_WRITE_TOKEN` is set in environment variables
+   - Check that the upload API has proper permissions

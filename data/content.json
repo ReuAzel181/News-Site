@@ -39,7 +39,7 @@
       "title": "Global Markets Rally as Central Banks Signal Policy Shifts",
       "excerpt": "Major stock indices surge following coordinated statements from Federal Reserve and European Central Bank regarding interest rate adjustments. The Dow Jones gained 2.3% while the S&P 500 reached new highs as investors anticipate more accommodative monetary policies. Market analysts suggest this could mark the beginning of a sustained bull run driven by improved economic outlook and corporate earnings growth.",
       "content": "Financial markets experienced significant gains today as investors responded positively to coordinated policy signals from major central banks. The Federal Reserve indicated a potential pause in rate hikes, while the European Central Bank suggested similar measures to support economic growth. This coordinated approach has boosted investor confidence across global markets, with technology and financial sectors leading the rally. Economic indicators show strengthening consumer spending and business investment, supporting the case for continued market optimism.",
-      "imageUrl": "/uploads/1756559423016-v27bz8brk6f.jpg",
+      "imageUrl": "/uploads/1757301751869-7bhlojsqc7q.png",
       "tags": [
         "business",
         "finance",
@@ -77,6 +77,17 @@
         "technology",
         "cybersecurity",
         "ai"
+      ]
+    },
+    "mock-breaking-1": {
+      "title": "President Announces Major Infrastructure Investment Plan",
+      "excerpt": "Comprehensive infrastructure package includes transportation, digital connectivity, and renewable energy projects nationwide...",
+      "content": "The President unveiled a sweeping infrastructure investment plan that promises to modernize the nation's critical systems...",
+      "imageUrl": "/uploads/1757301897331-272c5i3xei5.jpg",
+      "tags": [
+        "politics",
+        "infrastructure",
+        "economy"
       ]
     }
   },

@@ -18,6 +18,7 @@
     "@tailwindcss/line-clamp": "^0.4.4",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@vercel/blob": "^1.1.1",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
     "critters": "^0.0.23",
