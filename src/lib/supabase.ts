@@ -19,39 +19,46 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
 export const STORAGE_BUCKET = 'images'
 
 // Helper function to upload file to Supabase Storage
-export async function uploadToSupabase(file: File, fileName?: string): Promise<{ url: string; error?: string }> {
+export async function uploadToSupabase(file: File, fileName?: string): Promise<{ publicUrl: string; fileName: string; error?: string }> {
   try {
     const fileExt = file.name.split('.').pop()
     const finalFileName = fileName || `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
     
-    const { data, error } = await supabase.storage
+    // Convert File to ArrayBuffer for Supabase upload
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = new Uint8Array(arrayBuffer)
+    
+    // Use supabaseAdmin for server-side uploads to bypass RLS policies
+    const { data, error } = await supabaseAdmin.storage
       .from(STORAGE_BUCKET)
-      .upload(finalFileName, file, {
+      .upload(finalFileName, buffer, {
         cacheControl: '3600',
-        upsert: false
+        upsert: false,
+        contentType: file.type
       })
 
     if (error) {
       console.error('Upload error:', error)
-      return { url: '', error: error.message }
+      throw new Error(error.message)
     }
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    // Get public URL using the admin client
+    const { data: { publicUrl } } = supabaseAdmin.storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(data.path)
 
-    return { url: publicUrl }
+    return { publicUrl, fileName: finalFileName }
   } catch (error) {
     console.error('Upload error:', error)
-    return { url: '', error: 'Upload failed' }
+    throw error
   }
 }
 
 // Helper function to delete file from Supabase Storage
 export async function deleteFromSupabase(filePath: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await supabase.storage
+    // Use supabaseAdmin for server-side operations to bypass RLS policies
+    const { error } = await supabaseAdmin.storage
       .from(STORAGE_BUCKET)
       .remove([filePath])
 

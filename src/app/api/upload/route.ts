@@ -77,20 +77,15 @@ export async function POST(req: NextRequest) {
     console.log('[Upload API] Generated filename:', filename);
 
     // Check Supabase environment variables
-    console.log('[Upload API] SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('[Upload API] SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+     console.log('[Upload API] SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+     console.log('[Upload API] SUPABASE_SERVICE_ROLE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-    // Upload to Supabase Storage
-    console.log('[Upload API] Attempting Supabase Storage upload...');
-    const { url, error } = await uploadToSupabase(file, filename);
-    
-    if (error) {
-      console.error('[Upload API] Supabase upload failed:', error);
-      return new NextResponse(`Upload failed: ${error}`, { status: 500 });
-    }
-    
-    console.log('[Upload API] Upload successful:', url);
-    return NextResponse.json({ success: true, url });
+     // Upload to Supabase Storage
+      console.log('[Upload API] Attempting Supabase Storage upload...');
+      const result = await uploadToSupabase(file, filename);
+      
+      console.log('[Upload API] Upload successful:', result.publicUrl);
+      return NextResponse.json({ success: true, url: result.publicUrl, fileName: result.fileName });
   } catch (err) {
     console.error('[Upload API] Upload failed with error:', err);
     console.error('[Upload API] Error details:', {
@@ -98,6 +93,12 @@ export async function POST(req: NextRequest) {
       stack: err instanceof Error ? err.stack : 'No stack trace',
       name: err instanceof Error ? err.name : 'Unknown error type'
     });
-    return new NextResponse('Internal Server Error', { status: 500 });
+    
+    // Return more detailed error information
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    return NextResponse.json(
+      { success: false, error: errorMessage },
+      { status: 500 }
+    );
   }
 }

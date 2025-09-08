@@ -125,6 +125,15 @@ model AdminSettings {
   updatedAt              DateTime @updatedAt
 }
 
+
+model Layout {
+  id        Int      @id
+  template  Json
+  itemCount Int
+  updatedAt DateTime @updatedAt
+}
+
+
 enum Role {
   USER
   ADMIN

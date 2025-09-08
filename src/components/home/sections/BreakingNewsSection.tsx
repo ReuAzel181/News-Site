@@ -167,6 +167,38 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
   const [showGridLines, setShowGridLines] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [currentBreakpoint, setCurrentBreakpoint] = useState<Breakpoint>('lg');
+  const [loadingLayout, setLoadingLayout] = useState(false);
+
+  // Load saved layout from database on mount
+  useEffect(() => {
+    const loadLayout = async () => {
+      try {
+        setLoadingLayout(true);
+        const response = await fetch('/api/layout');
+        const data = await response.json();
+        
+        if (data.layout && data.layout.template) {
+          // Find matching template from LAYOUT_TEMPLATES
+          const savedTemplate = LAYOUT_TEMPLATES.find(
+            template => template.name === data.layout.template.name
+          );
+          
+          if (savedTemplate) {
+            setSelectedTemplate(savedTemplate);
+            setOriginalTemplate(savedTemplate);
+            setItemCount(data.layout.itemCount);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load layout:', error);
+        // Fallback to default template
+      } finally {
+        setLoadingLayout(false);
+      }
+    };
+
+    loadLayout();
+  }, []);
 
   // Breakpoint detection
   useEffect(() => {
@@ -214,13 +246,36 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
     setShowGridLines(false);
   }, [originalTemplate]);
 
-  const saveChanges = useCallback(() => {
-    setEditingLayout(false);
-    setHasUnsavedChanges(false);
-    setShowGridLines(false);
-    // Here you could save to localStorage or backend
-    console.log('Layout changes saved and editor closed');
-  }, []);
+  const saveChanges = useCallback(async () => {
+    try {
+      setLoadingLayout(true);
+      
+      const response = await fetch('/api/layout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          template: selectedTemplate,
+          itemCount: itemCount
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save layout');
+      }
+
+      setEditingLayout(false);
+      setHasUnsavedChanges(false);
+      setShowGridLines(false);
+      console.log('Layout changes saved successfully');
+    } catch (error) {
+      console.error('Error saving layout:', error);
+      // You could add a toast notification here
+    } finally {
+      setLoadingLayout(false);
+    }
+  }, [selectedTemplate, itemCount]);
 
   // Template selection function
   const applyTemplate = useCallback((template: LayoutTemplate) => {
@@ -330,14 +385,14 @@ export function BreakingNewsSection({ articles, onReadMore, onEdit, onEditBreaki
                       type="button"
                       className={cn(
                         'px-3 py-1.5 text-xs rounded-none border-none shadow-none',
-                        hasUnsavedChanges
+                        hasUnsavedChanges && !loadingLayout
                           ? 'bg-green-600 text-white'
                           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       )}
                       onClick={saveChanges}
-                      disabled={!hasUnsavedChanges}
+                      disabled={!hasUnsavedChanges || loadingLayout}
                     >
-                      Save Changes
+                      {loadingLayout ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                 )}
