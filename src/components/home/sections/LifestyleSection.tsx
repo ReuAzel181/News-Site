@@ -7,6 +7,7 @@ import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { Article } from '../types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
+import { useLayoutPersistence } from '@/hooks/useLayoutPersistence';
 
 // Breakpoint types
 type Breakpoint = 'base' | 'md' | 'lg' | 'xl';
@@ -136,11 +137,17 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
     )
     .slice(0, 8);
 
+  // Layout persistence hook
+  const {
+    selectedTemplate,
+    itemCount,
+    isLoaded,
+    applyTemplate: applyPersistentTemplate
+  } = useLayoutPersistence('lifestyle', LAYOUT_TEMPLATES[0], LAYOUT_TEMPLATES);
+
   // Layout editor state (admin only)
   const [editingLayout, setEditingLayout] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<LayoutTemplate>(LAYOUT_TEMPLATES[0]);
-  const [originalTemplate, setOriginalTemplate] = useState<LayoutTemplate>(LAYOUT_TEMPLATES[0]);
-  const [itemCount, setItemCount] = useState<number>(LAYOUT_TEMPLATES[0].itemCount);
+  const [originalTemplate, setOriginalTemplate] = useState<LayoutTemplate>(selectedTemplate);
   const [showGridLines, setShowGridLines] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [currentBreakpoint, setCurrentBreakpoint] = useState<Breakpoint>('lg');
@@ -189,27 +196,25 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
     setHasUnsavedChanges(false);
   }, [selectedTemplate]);
 
-  const cancelEditing = useCallback(() => {
-    setSelectedTemplate(originalTemplate);
-    setItemCount(originalTemplate.itemCount);
+  const cancelChanges = useCallback(() => {
+    applyPersistentTemplate(originalTemplate);
     setEditingLayout(false);
     setHasUnsavedChanges(false);
     setShowGridLines(false);
-  }, [originalTemplate]);
+  }, [originalTemplate, applyPersistentTemplate]);
 
   const saveChanges = useCallback(() => {
     setEditingLayout(false);
     setHasUnsavedChanges(false);
     setShowGridLines(false);
-    // Here you could save to localStorage or backend
+    // Template is already saved via applyPersistentTemplate
   }, []);
 
   // Template selection function
   const applyTemplate = useCallback((template: LayoutTemplate) => {
-    setSelectedTemplate(template);
-    setItemCount(template.itemCount);
-    setHasUnsavedChanges(true);
-  }, []);
+    applyPersistentTemplate(template);
+    // No need to set hasUnsavedChanges since the hook handles persistence automatically
+  }, [applyPersistentTemplate]);
 
   // Grid overlay for visual representation
   const GridOverlay = React.memo(() => {
@@ -308,7 +313,7 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
                   <button
                     type="button"
                     className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none"
-                    onClick={cancelEditing}
+                    onClick={cancelChanges}
                   >
                     Cancel
                   </button>

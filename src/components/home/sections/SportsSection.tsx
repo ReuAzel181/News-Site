@@ -7,6 +7,7 @@ import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { Article } from '../types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
+import { useLayoutPersistence } from '@/hooks/useLayoutPersistence';
 
 // Breakpoint types
 type Breakpoint = 'base' | 'md' | 'lg' | 'xl';
@@ -21,7 +22,7 @@ interface GridConfig {
 
 interface ItemLayout {
   colSpan: GridConfig;
-  priority: 'featured' | 'standard' | 'compact';
+  priority: 'featured' | 'normal' | 'compact';
 }
 
 interface LayoutTemplate {
@@ -41,9 +42,9 @@ const LAYOUT_TEMPLATES: LayoutTemplate[] = [
     itemCount: 7,
     itemLayouts: [
       { colSpan: { base: 1, md: 2, lg: 3, xl: 3 }, priority: 'featured' }, // Full width hero
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'standard' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'standard' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'standard' },
+      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
+      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
+      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
       { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
       { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
       { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
@@ -56,9 +57,9 @@ const LAYOUT_TEMPLATES: LayoutTemplate[] = [
     itemCount: 7,
     itemLayouts: [
       { colSpan: { base: 1, md: 2, lg: 2, xl: 2 }, priority: 'featured' }, // Large hero story
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'standard' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'standard' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'standard' },
+      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
+      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
+      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
       { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
       { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
       { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
@@ -139,10 +140,16 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
     )
     .slice(0, 12);
 
+  // Layout persistence hook
+  const {
+    selectedTemplate,
+    itemCount,
+    isLoaded,
+    applyTemplate: applyPersistentTemplate
+  } = useLayoutPersistence('sports', LAYOUT_TEMPLATES[0], LAYOUT_TEMPLATES);
+
   // Layout editor state
   const [editingLayout, setEditingLayout] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<LayoutTemplate>(LAYOUT_TEMPLATES[0]);
-  const [itemCount, setItemCount] = useState(6);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -195,18 +202,17 @@ export function SportsSection({ articles, onReadMore, onEdit, onDelete }: Sports
 
   const saveChanges = useCallback(() => {
     if (hasUnsavedChanges) {
-      // Here you would typically save to a backend or local storage
-      console.log('Saving layout changes:', { selectedTemplate, itemCount });
+      // Layout is already saved by the persistence hook
+      console.log('Layout changes saved:', { selectedTemplate, itemCount });
       setHasUnsavedChanges(false);
       setEditingLayout(false);
     }
   }, [hasUnsavedChanges, selectedTemplate, itemCount]);
 
   const applyTemplate = useCallback((template: LayoutTemplate) => {
-    setSelectedTemplate(template);
-    setItemCount(template.itemCount);
-    setHasUnsavedChanges(true);
-  }, []);
+    applyPersistentTemplate(template);
+    // No need to set hasUnsavedChanges since the hook handles persistence automatically
+  }, [applyPersistentTemplate]);
 
 
 

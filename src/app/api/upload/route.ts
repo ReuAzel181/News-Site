@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import type { Session } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { put } from '@vercel/blob';
+import { uploadToSupabase } from '@/lib/supabase';
 
 const ALLOWED_TYPES = new Set([
   'image/jpeg',
@@ -76,18 +76,21 @@ export async function POST(req: NextRequest) {
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
     console.log('[Upload API] Generated filename:', filename);
 
-    // Check environment variables
-    console.log('[Upload API] BLOB_READ_WRITE_TOKEN exists:', !!process.env.BLOB_READ_WRITE_TOKEN);
-    console.log('[Upload API] BLOB_READ_WRITE_TOKEN length:', process.env.BLOB_READ_WRITE_TOKEN?.length);
+    // Check Supabase environment variables
+    console.log('[Upload API] SUPABASE_URL exists:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('[Upload API] SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
-    // Upload to Vercel Blob
-    console.log('[Upload API] Attempting Vercel Blob upload...');
-    const blob = await put(filename, file, {
-      access: 'public',
-    });
-    console.log('[Upload API] Upload successful:', blob.url);
-
-    return NextResponse.json({ success: true, url: blob.url });
+    // Upload to Supabase Storage
+    console.log('[Upload API] Attempting Supabase Storage upload...');
+    const { url, error } = await uploadToSupabase(file, filename);
+    
+    if (error) {
+      console.error('[Upload API] Supabase upload failed:', error);
+      return new NextResponse(`Upload failed: ${error}`, { status: 500 });
+    }
+    
+    console.log('[Upload API] Upload successful:', url);
+    return NextResponse.json({ success: true, url });
   } catch (err) {
     console.error('[Upload API] Upload failed with error:', err);
     console.error('[Upload API] Error details:', {

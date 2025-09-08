@@ -204,9 +204,9 @@ export function BusinessSection({ articles, onReadMore, onEdit, onDelete }: Busi
   }, []);
 
   const applyTemplate = useCallback((template: LayoutTemplate) => {
-    setGridCols(template.config);
-    setHasUnsavedChanges(true);
-  }, []);
+    applyPersistentTemplate(template);
+    // No need to set hasUnsavedChanges since the hook handles persistence automatically
+  }, [applyPersistentTemplate]);
 
   const startEditing = useCallback(() => {
     setOriginalTemplate(selectedTemplate);

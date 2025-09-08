@@ -38,13 +38,13 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
 
   const handleChange = (field: keyof Article, value: Article[keyof Article]) => {
     setDraft(prev => ({ ...prev, [field]: value }));
-    // If user manually enters an image URL, clear the local file
+    // If user manually enters an image URL, clear any local state
     if (field === 'imageUrl' && value) {
       if (localImageUrl) {
         URL.revokeObjectURL(localImageUrl);
         setLocalImageUrl(null);
-        setLocalImageFile(null);
       }
+      setLocalImageFile(null);
     }
   };
 
@@ -73,15 +73,46 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
      setDraft(prev => ({ ...prev, tags: existing.filter(t => t !== tag) }));
    };
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (localImageUrl) URL.revokeObjectURL(localImageUrl);
-    const url = URL.createObjectURL(file);
-    setLocalImageFile(file);
-    setLocalImageUrl(url);
-    // Don't set the blob URL to draft.imageUrl - keep it separate for preview
-    // The actual URL will be set after upload in handleSave
+    
+    // Clean up previous blob URL
+    if (localImageUrl) {
+      URL.revokeObjectURL(localImageUrl);
+      setLocalImageUrl(null);
+    }
+    
+    // Upload immediately to get Vercel Blob URL
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.url) {
+          // Set the Vercel Blob URL directly to the draft
+          setDraft(prev => ({ ...prev, imageUrl: json.url }));
+          setLocalImageFile(null); // Clear local file since it's uploaded
+        }
+      } else {
+        console.error("Upload failed", await res.text());
+        // Fallback to blob URL for preview if upload fails
+        const url = URL.createObjectURL(file);
+        setLocalImageFile(file);
+        setLocalImageUrl(url);
+      }
+    } catch (e) {
+      console.error("Upload error", e);
+      // Fallback to blob URL for preview if upload fails
+      const url = URL.createObjectURL(file);
+      setLocalImageFile(file);
+      setLocalImageUrl(url);
+    }
   };
 
   // simple deterministic color palette for tags
@@ -99,27 +130,8 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
   const handleSave = async () => {
     const finalArticle = { ...draft };
 
-    if (localImageFile) {
-      try {
-        const formData = new FormData();
-        formData.append("file", localImageFile);
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        if (res.ok) {
-          const json = await res.json();
-          if (json?.url) {
-            finalArticle.imageUrl = json.url as string;
-          }
-        } else {
-          console.error("Upload failed", await res.text());
-        }
-      } catch (e) {
-        console.error("Upload error", e);
-      }
-    }
-
+    // Image upload is now handled immediately in handleImageFileChange
+    // so we just save the article with the already uploaded URL
     onSave(finalArticle);
   };
 
@@ -179,9 +191,9 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
               <div className="space-y-4">
                 {/* Image Preview */}
                 <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center overflow-hidden">
-                  {(localImageUrl || draft.imageUrl) ? (
+                  {draft.imageUrl ? (
                     <ProgressiveImage 
-                      src={localImageUrl || draft.imageUrl} 
+                      src={draft.imageUrl} 
                       alt={draft.title} 
                       className="w-full h-full object-cover" 
                       fill 
@@ -189,7 +201,7 @@ export default function EditArticleModal({ isOpen, article, onClose, onSave, ava
                   ) : (
                     <div className="text-center">
                       <svg className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <span className="text-sm text-gray-500 dark:text-gray-400">No image selected</span>
                     </div>
