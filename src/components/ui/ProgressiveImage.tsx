@@ -106,15 +106,16 @@ export function ProgressiveImage({
   };
 
   const noImage = !src;
-  const isLocalPreview = typeof src === 'string' && (src.startsWith('blob:') || src.startsWith('data:'));
+  const isLocalPreview = typeof src === 'string' && src.startsWith('data:');
   const isUnsplash = typeof src === 'string' && src.includes('images.unsplash.com');
   const isBlobUrl = typeof src === 'string' && src.startsWith('blob:');
+  const isVercelBlob = typeof src === 'string' && src.includes('.blob.vercel-storage.com');
   
   // Auto-detect if image should be unoptimized
-  const shouldBeUnoptimized = unoptimized ?? (isLocalPreview || isUnsplash);
+  const shouldBeUnoptimized = unoptimized ?? (isLocalPreview || isUnsplash || isBlobUrl || isVercelBlob);
   
-  // Force use of regular img tag for Unsplash URLs to avoid Next.js optimization issues
-  const forceRegularImg = isUnsplash;
+  // Force use of regular img tag for Unsplash URLs and blob URLs to avoid Next.js optimization issues
+  const forceRegularImg = isUnsplash || isBlobUrl || isVercelBlob;
 
   // Don't render anything until mounted to avoid hydration issues
   if (!mounted) {
@@ -130,18 +131,6 @@ export function ProgressiveImage({
     return (
       <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
         <ImageFallback className="w-full h-full" />
-      </div>
-    );
-  }
-
-  // Handle blob URLs that cause security errors
-  if (isBlobUrl) {
-    return (
-      <div ref={imgRef} className={cn('relative overflow-hidden', className)}>
-        <ImageFallback 
-          className="w-full h-full" 
-          text="Preview not available"
-        />
       </div>
     );
   }

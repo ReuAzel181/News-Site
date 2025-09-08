@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3000'),
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'http://localhost:3001'),
   openGraph: {
     type: "website",
     locale: "en_US",

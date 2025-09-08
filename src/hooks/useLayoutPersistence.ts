@@ -35,24 +35,34 @@ export function useLayoutPersistence(
 
     try {
       const storageKey = `${STORAGE_PREFIX}${sectionName}`;
+      console.log(`[Layout Persistence] Loading layout for ${sectionName}, key: ${storageKey}`);
       const saved = localStorage.getItem(storageKey);
+      console.log(`[Layout Persistence] Saved data:`, saved);
       
       if (saved) {
         const parsedState: LayoutState = JSON.parse(saved);
+        console.log(`[Layout Persistence] Parsed state:`, parsedState);
         
         // Validate that the saved template still exists in available templates
         const validTemplate = availableTemplates.find(
           template => template.name === parsedState.selectedTemplate.name
         );
+        console.log(`[Layout Persistence] Valid template found:`, validTemplate);
         
         if (validTemplate) {
+          console.log(`[Layout Persistence] Applying saved layout: ${validTemplate.name}, itemCount: ${parsedState.itemCount}`);
           setSelectedTemplate(validTemplate);
           setItemCount(parsedState.itemCount);
+        } else {
+          console.log(`[Layout Persistence] Template not found in available templates, using default`);
         }
+      } else {
+        console.log(`[Layout Persistence] No saved data found, using default template`);
       }
     } catch (error) {
-      console.warn(`Failed to load layout for ${sectionName}:`, error);
+      console.warn(`[Layout Persistence] Failed to load layout for ${sectionName}:`, error);
     } finally {
+      console.log(`[Layout Persistence] Setting isLoaded to true for ${sectionName}`);
       setIsLoaded(true);
     }
   }, [sectionName, availableTemplates]);
@@ -68,9 +78,15 @@ export function useLayoutPersistence(
         itemCount: count
       };
       
+      console.log(`[Layout Persistence] Saving layout for ${sectionName}:`, state);
       localStorage.setItem(storageKey, JSON.stringify(state));
+      console.log(`[Layout Persistence] Layout saved successfully to ${storageKey}`);
+      
+      // Verify the save worked
+      const verification = localStorage.getItem(storageKey);
+      console.log(`[Layout Persistence] Verification read:`, verification);
     } catch (error) {
-      console.warn(`Failed to save layout for ${sectionName}:`, error);
+      console.warn(`[Layout Persistence] Failed to save layout for ${sectionName}:`, error);
     }
   }, [sectionName]);
 

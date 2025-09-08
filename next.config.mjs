@@ -39,6 +39,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'i.guim.co.uk',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.blob.vercel-storage.com',
       }
     ],
     dangerouslyAllowSVG: true,

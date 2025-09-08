@@ -8,8 +8,9 @@ For production deployment, you need to set the following environment variables:
 
 1. **NEXTAUTH_URL**
    - Set to your production domain
-   - Example: `https://your-domain.vercel.app`
+   - Example: `https://veritas-bulletin.vercel.app`
    - For Vercel: This is automatically set, but you can override it
+   - **IMPORTANT**: Never use localhost URLs in production!
 
 2. **NEXTAUTH_SECRET**
    - A random string used to encrypt JWT tokens
@@ -34,12 +35,15 @@ For production deployment, you need to set the following environment variables:
 2. Navigate to "Environment Variables"
 3. Add the required variables:
    ```
-   NEXTAUTH_URL=https://your-domain.vercel.app
+   NEXTAUTH_URL=https://veritas-bulletin.vercel.app
    NEXTAUTH_SECRET=your-generated-secret
    DATABASE_URL=your-database-url
    NODE_ENV=production
    BLOB_READ_WRITE_TOKEN=your-blob-token
    ```
+
+   **Note**: The NEXTAUTH_URL should match your actual Vercel deployment URL.
+   Do NOT use localhost URLs in production environment variables.
 
 4. Enable Vercel Blob storage:
    - In your Vercel dashboard, go to your project
