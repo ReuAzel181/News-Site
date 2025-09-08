@@ -18,16 +18,18 @@ For production deployment, you need to set the following environment variables:
    - Example: `a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6`
 
 3. **DATABASE_URL**
-   - For development: `"file:./dev.db"`
-   - For production: Use your database provider's connection string
+   - For production: Use your Supabase PostgreSQL connection string
+   - Get from Supabase Dashboard > Project Settings > Database > Connection string
+   - Format: `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?pgbouncer=true&connection_limit=1`
 
 4. **NODE_ENV**
    - Set to `production` for production builds
 
-5. **BLOB_READ_WRITE_TOKEN**
-   - Required for Vercel Blob storage (file uploads)
-   - Automatically provided by Vercel when you enable Blob storage
-   - For local development, you can get this from your Vercel dashboard
+5. **Supabase Configuration**
+   - **NEXT_PUBLIC_SUPABASE_URL**: Your Supabase project URL
+   - **NEXT_PUBLIC_SUPABASE_ANON_KEY**: Your Supabase anon/public key
+   - **SUPABASE_SERVICE_ROLE_KEY**: Your Supabase service role key (for server-side operations)
+   - Get these from Supabase Dashboard > Project Settings > API
 
 ### Vercel Deployment
 
@@ -35,21 +37,24 @@ For production deployment, you need to set the following environment variables:
 2. Navigate to "Environment Variables"
 3. Add the required variables:
    ```
-   NEXTAUTH_URL=https://veritas-bulletin.vercel.app
+   NEXTAUTH_URL=https://your-domain.vercel.app
    NEXTAUTH_SECRET=your-generated-secret
-   DATABASE_URL=your-database-url
+   DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?pgbouncer=true&connection_limit=1
    NODE_ENV=production
-   BLOB_READ_WRITE_TOKEN=your-blob-token
+   NEXT_PUBLIC_SUPABASE_URL=https://[PROJECT-REF].supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   ADMIN_USERNAME=your-admin-username
+   ADMIN_PASSWORD=your-admin-password
    ```
 
    **Note**: The NEXTAUTH_URL should match your actual Vercel deployment URL.
    Do NOT use localhost URLs in production environment variables.
 
-4. Enable Vercel Blob storage:
-   - In your Vercel dashboard, go to your project
-   - Navigate to "Storage" tab
-   - Click "Create Database" and select "Blob"
-   - The `BLOB_READ_WRITE_TOKEN` will be automatically added to your environment variables
+4. Set up Supabase Database:
+   - Create tables by running: `npx prisma db push` (locally first)
+   - Or use Prisma migrations: `npx prisma migrate deploy`
+   - Ensure your Supabase project has the 'images' storage bucket created
 
 ### Authentication Setup
 
@@ -79,6 +84,13 @@ The application uses file-based authentication with credentials stored in `admin
    - For SQLite in production, consider using a persistent storage solution
 
 4. **File Upload Issues (500 Internal Server Error)**
-   - Ensure Vercel Blob storage is enabled in your project
-   - Verify `BLOB_READ_WRITE_TOKEN` is set in environment variables
-   - Check that the upload API has proper permissions
+   - Ensure Supabase storage bucket 'images' exists in your project
+   - Verify `SUPABASE_SERVICE_ROLE_KEY` is set in environment variables
+   - Check that the Supabase storage policies allow uploads
+   - Ensure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are correct
+
+5. **Database Connection Issues**
+   - Verify `DATABASE_URL` points to your Supabase PostgreSQL database
+   - Ensure database password is correct in the connection string
+   - Check that all required tables exist (run `npx prisma db push`)
+   - Verify Supabase project is not paused or has connection limits

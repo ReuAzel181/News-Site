@@ -43,6 +43,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '*.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'wnoivekuqrswcfwwaxit.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
       }
     ],
     dangerouslyAllowSVG: true,
