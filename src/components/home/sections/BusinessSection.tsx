@@ -7,6 +7,7 @@ import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { Article } from '../types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
+import { useLayoutPersistence } from '@/hooks/useLayoutPersistence';
 
 // Breakpoint type
 type BP = 'base' | 'md' | 'lg' | 'xl';
@@ -164,14 +165,28 @@ export function BusinessSection({ articles, onReadMore, onEdit, onDelete }: Busi
   
   console.log('BusinessSection filtered articles:', businessNews.length, businessNews);
 
+  // Layout persistence hook
+  const {
+    selectedTemplate,
+    itemCount,
+    isLoaded,
+    applyTemplate: applyPersistentTemplate
+  } = useLayoutPersistence('business', LAYOUT_TEMPLATES[0], LAYOUT_TEMPLATES);
+
   // Layout editor state (admin only)
   const [editingLayout, setEditingLayout] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<LayoutTemplate>(LAYOUT_TEMPLATES[0]);
-  const [originalTemplate, setOriginalTemplate] = useState<LayoutTemplate>(LAYOUT_TEMPLATES[0]);
-  const [gridCols, setGridCols] = useState<GridConfig>(LAYOUT_TEMPLATES[0].config);
-  const [itemCount, setItemCount] = useState<number>(LAYOUT_TEMPLATES[0].itemCount);
+  const [originalTemplate, setOriginalTemplate] = useState<LayoutTemplate>(selectedTemplate);
+  const [gridCols, setGridCols] = useState<GridConfig>(selectedTemplate.config);
   const [showGridLines, setShowGridLines] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Update grid cols when selected template changes
+  useEffect(() => {
+    if (isLoaded) {
+      setGridCols(selectedTemplate.config);
+      setOriginalTemplate(selectedTemplate);
+    }
+  }, [selectedTemplate, isLoaded]);
 
   // Determine current breakpoint for preview
   const [bp, setBp] = useState<BP>('base');
@@ -189,9 +204,7 @@ export function BusinessSection({ articles, onReadMore, onEdit, onDelete }: Busi
   }, []);
 
   const applyTemplate = useCallback((template: LayoutTemplate) => {
-    setSelectedTemplate(template);
     setGridCols(template.config);
-    setItemCount(template.itemCount);
     setHasUnsavedChanges(true);
   }, []);
 
@@ -202,20 +215,24 @@ export function BusinessSection({ articles, onReadMore, onEdit, onDelete }: Busi
   }, [selectedTemplate]);
 
   const cancelEditing = useCallback(() => {
-    setSelectedTemplate(originalTemplate);
     setGridCols(originalTemplate.config);
-    setItemCount(originalTemplate.itemCount);
     setEditingLayout(false);
     setHasUnsavedChanges(false);
     setShowGridLines(false);
   }, [originalTemplate]);
 
   const saveChanges = useCallback(() => {
+    // Save the current template and item count to localStorage
+    const currentTemplate = LAYOUT_TEMPLATES.find(t => 
+      JSON.stringify(t.config) === JSON.stringify(gridCols)
+    ) || selectedTemplate;
+    
+    applyPersistentTemplate(currentTemplate);
     setEditingLayout(false);
     setHasUnsavedChanges(false);
     setShowGridLines(false);
     // Here you could save to localStorage or backend
-  }, []);
+  }, [applyPersistentTemplate, gridCols, selectedTemplate, itemCount]);
 
   // Grid visualization
   const gridRef = useRef<HTMLDivElement>(null);
@@ -375,7 +392,10 @@ export function BusinessSection({ articles, onReadMore, onEdit, onDelete }: Busi
                                 ? 'border-blue-500 bg-blue-50 text-blue-900'
                                 : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                             )}
-                            onClick={() => applyTemplate(template)}
+                            onClick={() => {
+                              applyPersistentTemplate(template);
+                              applyTemplate(template);
+                            }}
                           >
                             {isActive && (
                               <div
