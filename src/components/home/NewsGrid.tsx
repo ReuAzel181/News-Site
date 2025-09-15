@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArticleModal } from '@/components/ui/ArticleModal';
-import EditArticleModal from '@/components/ui/EditArticleModal';
-import BreakingNewsEditModal from '@/components/ui/BreakingNewsEditModal';
 import { EditVideoModal } from '@/components/ui/EditVideoModal';
 import { useSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
@@ -15,8 +13,9 @@ import {
   TechnologySection,
   FeaturedVideosSection
 } from './sections';
-import { Article } from './types';
+import { Article } from '@/types';
 import { fetchMixedNews, getMockNewsData } from '@/services/newsService';
+import articleActions from '@/services/articleActions';
 
 interface ContentPayload {
   breakingNews: string[];
@@ -36,87 +35,89 @@ interface Video {
   channel: string;
 }
 
-// Note: Currently using mock news data via getMockNewsData() for debugging.
-// To enable live fetching, use fetchMixedNews() in loadNews and refreshNews.
-// YouTube videos data
+// Mock YouTube videos
 const youtubeVideos = [
   {
     id: 'video1',
     title: 'President Marcos SONA 2024 Highlights',
-    description: 'Key highlights from President Ferdinand Marcos Jr.\'s 2024 State of the Nation Address covering economic recovery, infrastructure, and governance reforms.',
-    videoId: 'smBAliz5iCY', // SONA 2024 highlights from ANC
+    description:
+      "Key highlights from President Ferdinand Marcos Jr.'s 2024 State of the Nation Address covering economic recovery, infrastructure, and governance reforms.",
+    videoId: 'smBAliz5iCY',
     thumbnail: 'https://img.youtube.com/vi/smBAliz5iCY/hqdefault.jpg',
     duration: '15:32',
     views: '2.1M',
-    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
     channel: 'ANC 24/7'
   },
   {
     id: 'video2',
-    title: 'SC declares Articles of Impeachment vs VP Sara Duterte as unconstitutional',
-    description: 'Breaking news coverage of the Supreme Court\'s declaration regarding the Articles of Impeachment against Vice President Sara Duterte.',
-    videoId: '_zCam-VGggA', // GMA Integrated News - SC impeachment ruling
+    title:
+      'SC declares Articles of Impeachment vs VP Sara Duterte as unconstitutional',
+    description:
+      "Breaking news coverage of the Supreme Court's declaration regarding the Articles of Impeachment against Vice President Sara Duterte.",
+    videoId: '_zCam-VGggA',
     thumbnail: 'https://img.youtube.com/vi/_zCam-VGggA/hqdefault.jpg',
     duration: '8:45',
     views: '1.3M',
-    publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
     channel: 'GMA Integrated News'
   },
   {
     id: 'video3',
     title: 'Senate hearing: PNP chief on illegal gambling crackdown',
-    description: 'Highlights from the Senate hearing where the PNP chief discussed actions against illegal gambling operations across the country.',
-    videoId: 'qJZ8oQ9VxXk', // Example video on PNP hearing
+    description:
+      'Highlights from the Senate hearing where the PNP chief discussed actions against illegal gambling operations across the country.',
+    videoId: 'qJZ8oQ9VxXk',
     thumbnail: 'https://img.youtube.com/vi/qJZ8oQ9VxXk/hqdefault.jpg',
     duration: '12:10',
     views: '850K',
-    publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+    publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
     channel: 'Rappler'
   }
 ];
 
-// NewsGrid component starts here
 const NewsGrid: React.FC = () => {
   const { data: session } = useSession();
-  // State for managing news articles
+
   const [newsArticles, setNewsArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingArticle, setEditingArticle] = useState<Article | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [editingBreaking, setEditingBreaking] = useState<Article | null>(null);
-  const [isBreakingEditOpen, setIsBreakingEditOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const [isVideoEditOpen, setIsVideoEditOpen] = useState(false);
   const [videos, setVideos] = useState(youtubeVideos);
 
-  // Fetch news data on component mount
   useEffect(() => {
     const loadNews = async () => {
       try {
         setLoading(true);
         setError(null);
-        // Load persisted content payload (tags, overrides)
-        const contentRes = await fetch('/api/content', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).catch(() => null);
+
+        const contentRes = await fetch('/api/content', {
+          cache: 'no-store'
+        })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+
         const content: ContentPayload | null = contentRes?.data || null;
         if (content?.availableTags) setAvailableTags(content.availableTags);
 
         const mockData = getMockNewsData();
-        // Apply article overrides if any
-        const withOverrides = content?.articleOverrides ? mockData.map((a) => ({
-          ...a,
-          ...(content.articleOverrides[a.id] || {})
-        })) : mockData;
-        console.log('Mock data loaded:', withOverrides.length, 'articles');
+        const withOverrides = content?.articleOverrides
+          ? mockData.map((a) => ({
+              ...a,
+              ...(content.articleOverrides[a.id] || {})
+            }))
+          : mockData;
+
         setNewsArticles(withOverrides);
       } catch (err) {
         console.error('Failed to fetch news:', err);
         setError('Failed to load news. Using fallback data.');
-        const mockArticles = getMockNewsData();
-        setNewsArticles(mockArticles);
+        setNewsArticles(getMockNewsData());
       } finally {
         setLoading(false);
       }
@@ -124,32 +125,6 @@ const NewsGrid: React.FC = () => {
 
     loadNews();
   }, []);
-
-  const handleSaveEdit = async (updated: Article) => {
-    setNewsArticles(prev => prev.map(a => a.id === updated.id ? { ...a, ...updated } : a));
-    setSelectedArticle(prev => (prev && prev.id === updated.id ? { ...prev, ...updated } : prev));
-    setIsEditOpen(false);
-    setEditingArticle(null);
-    setIsBreakingEditOpen(false);
-    setEditingBreaking(null);
-
-    // Persist override (only fields we allow override)
-    try {
-      await fetch('/api/content', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ op: 'setArticleOverride', articleId: updated.id, patch: {
-          title: updated.title,
-          excerpt: updated.excerpt,
-          content: updated.content,
-          imageUrl: updated.imageUrl,
-          tags: updated.tags || []
-        } })
-      });
-    } catch (e) {
-      console.error('Failed to persist article override', e);
-    }
-  };
 
   const refreshNews = async () => {
     try {
@@ -160,8 +135,7 @@ const NewsGrid: React.FC = () => {
     } catch (err) {
       console.error('Failed to refresh news:', err);
       setError('Failed to refresh news. Using fallback data.');
-      const mockArticles = getMockNewsData();
-      setNewsArticles(mockArticles);
+      setNewsArticles(getMockNewsData());
     } finally {
       setLoading(false);
     }
@@ -177,20 +151,6 @@ const NewsGrid: React.FC = () => {
     setSelectedArticle(null);
   };
 
-  const handleEdit = (article: Article) => {
-    if (session?.user && (session as Session).user?.role === 'ADMIN') {
-      setEditingArticle(article);
-      setIsEditOpen(true);
-    }
-  };
-
-  const handleEditBreaking = (article: Article) => {
-    if (session?.user && (session as Session).user?.role === 'ADMIN') {
-      setEditingBreaking(article);
-      setIsBreakingEditOpen(true);
-    }
-  };
-
   const handleEditVideo = (video: Video) => {
     if (session?.user && (session as Session).user?.role === 'ADMIN') {
       setEditingVideo(video);
@@ -200,23 +160,23 @@ const NewsGrid: React.FC = () => {
 
   const handleAddVideo = (newVideo: Video) => {
     if (session?.user && (session as Session).user?.role === 'ADMIN') {
-      // Add the new video to the videos state immediately for visual feedback
-      setVideos(prev => [...prev, newVideo]);
-      // Then open the edit modal to allow customization
+      setVideos((prev) => [...prev, newVideo]);
       setEditingVideo(newVideo);
       setIsVideoEditOpen(true);
     }
   };
 
   const handleSaveVideo = (updatedVideo: Video) => {
-    setVideos(prev => prev.map(v => v.id === updatedVideo.id ? updatedVideo : v));
+    setVideos((prev) =>
+      prev.map((v) => (v.id === updatedVideo.id ? updatedVideo : v))
+    );
     setIsVideoEditOpen(false);
     setEditingVideo(null);
   };
 
   const handleDeleteVideo = (videoId: string) => {
     if (session?.user && (session as Session).user?.role === 'ADMIN') {
-      setVideos(prev => prev.filter(v => v.id !== videoId));
+      setVideos((prev) => prev.filter((v) => v.id !== videoId));
       if (editingVideo && editingVideo.id === videoId) {
         setIsVideoEditOpen(false);
         setEditingVideo(null);
@@ -224,29 +184,50 @@ const NewsGrid: React.FC = () => {
     }
   };
 
-  const handleDelete = (articleId: string) => {
+  const handleDelete = async (articleId: string | number) => {
     if (session?.user && (session as Session).user?.role === 'ADMIN') {
-      setNewsArticles(prev => prev.filter(a => a.id !== articleId));
-      if (selectedArticle && selectedArticle.id === articleId) {
-        setIsModalOpen(false);
-        setSelectedArticle(null);
-      }
-      if (editingArticle && editingArticle.id === articleId) {
-        setIsEditOpen(false);
-        setEditingArticle(null);
+      try {
+        await articleActions.deleteArticle(typeof articleId === 'string' ? parseInt(articleId) : articleId);
+        setNewsArticles((prev) => prev.filter((a) => a.id !== articleId.toString()));
+        if (selectedArticle && selectedArticle.id === articleId.toString()) {
+          setIsModalOpen(false);
+          setSelectedArticle(null);
+        }
+      } catch (error) {
+        console.error('Failed to delete article:', error);
       }
     }
   };
 
+  const handleEdit = (article: Article) => {
+    // For now, we'll open the article modal for editing
+    // This can be enhanced to open a dedicated edit modal
+    setSelectedArticle(article);
+    setIsModalOpen(true);
+  };
 
+  const handleUpdate = (updatedArticle: any) => {
+    setNewsArticles((prev) => 
+      prev.map((article) => 
+        article.id === updatedArticle.id ? { ...article, ...updatedArticle } : article
+      )
+    );
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--background)'}}>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: 'var(--background)' }}
+      >
         <div className="text-center">
-          {/* Flat loading indicator: no animation, borders, or rounding */}
-          <div className="mx-auto mb-4 h-3 w-24" style={{ backgroundColor: 'var(--muted)' }}></div>
-          <p style={{color: 'var(--muted-foreground)'}}>Loading latest news...</p>
+          <div
+            className="mx-auto mb-4 h-3 w-24"
+            style={{ backgroundColor: 'var(--muted)' }}
+          ></div>
+          <p style={{ color: 'var(--muted-foreground)' }}>
+            Loading latest news...
+          </p>
         </div>
       </div>
     );
@@ -257,7 +238,7 @@ const NewsGrid: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <button 
+          <button
             onClick={refreshNews}
             className="bg-red-600 text-white px-4 py-2 focus:outline-none"
           >
@@ -273,7 +254,7 @@ const NewsGrid: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 mb-4">No articles found.</p>
-          <button 
+          <button
             onClick={refreshNews}
             className="bg-red-600 text-white px-4 py-2 focus:outline-none"
           >
@@ -286,12 +267,12 @@ const NewsGrid: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[1200px] mx-[264px]">
         {error && (
           <div className="mb-6 p-4" style={{ backgroundColor: 'var(--muted)' }}>
             <div className="flex justify-between items-center">
               <p className="text-yellow-800">{error}</p>
-              <button 
+              <button
                 onClick={refreshNews}
                 className="bg-yellow-600 text-white px-3 py-1 text-sm focus:outline-none"
               >
@@ -301,14 +282,37 @@ const NewsGrid: React.FC = () => {
           </div>
         )}
 
-
-        <BreakingNewsSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onEditBreaking={handleEditBreaking} />
-        <BusinessSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onDelete={handleDelete} />
-        <TechnologySection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onDelete={handleDelete} />
-        <SportsSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onDelete={handleDelete} />
-        <LifestyleSection articles={newsArticles} onReadMore={handleReadMore} onEdit={handleEdit} onDelete={handleDelete} />
-        <FeaturedVideosSection 
-          videos={videos} 
+        <BreakingNewsSection
+          articles={newsArticles}
+          onReadMore={handleReadMore}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+        <BusinessSection
+          articles={newsArticles}
+          onReadMore={handleReadMore}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+        <TechnologySection
+          articles={newsArticles}
+          onReadMore={handleReadMore}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+        <SportsSection
+          articles={newsArticles}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+        <LifestyleSection
+          articles={newsArticles}
+          onReadMore={handleReadMore}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+        <FeaturedVideosSection
+          videos={videos}
           isAdmin={session?.user && (session as Session).user?.role === 'ADMIN'}
           onEdit={handleEditVideo}
           onAdd={handleAddVideo}
@@ -323,31 +327,14 @@ const NewsGrid: React.FC = () => {
           />
         )}
 
-        {editingArticle && session?.user && (session as Session).user?.role === 'ADMIN' && (
-          <EditArticleModal
-            isOpen={isEditOpen}
-            article={editingArticle}
-            onClose={() => { setIsEditOpen(false); setEditingArticle(null); }}
-            onSave={handleSaveEdit}
-            availableTags={availableTags}
-          />
-        )}
-
-        {editingBreaking && session?.user && (session as Session).user?.role === 'ADMIN' && (
-          <BreakingNewsEditModal
-            isOpen={isBreakingEditOpen}
-            article={editingBreaking}
-            onClose={() => { setIsBreakingEditOpen(false); setEditingBreaking(null); }}
-            onSave={handleSaveEdit}
-            availableTags={availableTags}
-          />
-        )}
-
         {editingVideo && session?.user && (session as Session).user?.role === 'ADMIN' && (
           <EditVideoModal
             isOpen={isVideoEditOpen}
             video={editingVideo}
-            onClose={() => { setIsVideoEditOpen(false); setEditingVideo(null); }}
+            onClose={() => {
+              setIsVideoEditOpen(false);
+              setEditingVideo(null);
+            }}
             onSave={(video: Video) => handleSaveVideo(video)}
           />
         )}

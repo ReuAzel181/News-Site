@@ -1,4 +1,4 @@
-import { Article } from '@/components/home/types';
+import { Article } from '@/types';
 
 // RSS to JSON converter service
 const RSS_TO_JSON_API = 'https://api.rss2json.com/v1/api.json';

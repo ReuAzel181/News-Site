@@ -4,109 +4,17 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { getGridWithSeparators } from '@/components/ui/GridSeparators';
 import { cn } from '@/utils/cn';
+import { 
+  LAYOUT_TEMPLATES, 
+  COLS_CLASS, 
+  COL_SPAN_CLASS, 
+  type Breakpoint, 
+  type GridConfig, 
+  type ItemLayout, 
+  type LayoutTemplate 
+} from '../layouts/layoutTemplates';
 
-type Breakpoint = 'base' | 'md' | 'lg' | 'xl';
 
-interface GridConfig {
-  base: number;
-  md: number;
-  lg: number;
-  xl: number;
-}
-
-interface ItemLayout {
-  colSpan: GridConfig;
-  priority: 'featured' | 'normal' | 'compact';
-}
-
-interface LayoutTemplate {
-  name: string;
-  description: string;
-  config: GridConfig;
-  itemCount: number;
-  itemLayouts?: ItemLayout[];
-}
-
-const GRID_CLASS: Record<number, string> = {
-  1: 'grid-cols-1',
-  2: 'grid-cols-2',
-  3: 'grid-cols-3',
-  4: 'grid-cols-4',
-  5: 'grid-cols-5',
-  6: 'grid-cols-6'
-};
-
-const COL_SPAN_CLASS: Record<number, string> = {
-  1: 'col-span-1',
-  2: 'col-span-2',
-  3: 'col-span-3',
-  4: 'col-span-4',
-  5: 'col-span-5',
-  6: 'col-span-6'
-};
-
-const LAYOUT_TEMPLATES: LayoutTemplate[] = [
-  {
-    name: 'Cinema Hero',
-    description: 'Large cinematic video player with thumbnail playlist below',
-    config: { base: 1, md: 2, lg: 4, xl: 4 },
-    itemCount: 8,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 2, lg: 4, xl: 4 }, priority: 'featured' }, // Full width cinema player
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  },
-  {
-    name: 'Video Spotlight',
-    description: 'Main video with sidebar playlist for focused viewing',
-    config: { base: 1, md: 3, lg: 3, xl: 3 },
-    itemCount: 6,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 2, lg: 2, xl: 2 }, priority: 'featured' }, // Main video player
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  },
-  {
-    name: 'Video Gallery',
-    description: 'Equal-sized video thumbnails for browsing multiple videos',
-    config: { base: 2, md: 3, lg: 4, xl: 4 },
-    itemCount: 12
-  },
-  {
-    name: 'Dual Feature',
-    description: 'Two featured videos side-by-side with related videos below',
-    config: { base: 1, md: 2, lg: 4, xl: 4 },
-    itemCount: 10,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 1, lg: 2, xl: 2 }, priority: 'featured' }, // Left featured video
-      { colSpan: { base: 1, md: 1, lg: 2, xl: 2 }, priority: 'featured' }, // Right featured video
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  },
-  {
-    name: 'Playlist View',
-    description: 'Compact video list optimized for sequential viewing',
-    config: { base: 1, md: 2, lg: 3, xl: 6 },
-    itemCount: 15
-  }
-];
 
 interface Video {
   id: string;
@@ -162,10 +70,10 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
   const gridClasses = useMemo(() => {
     const config = activeTemplate.config;
     return [
-      GRID_CLASS[config.base],
-      `md:${GRID_CLASS[config.md]}`,
-      `lg:${GRID_CLASS[config.lg]}`,
-      `xl:${GRID_CLASS[config.xl]}`
+      COLS_CLASS[config.base],
+      `md:${COLS_CLASS[config.md]}`,
+      `lg:${COLS_CLASS[config.lg]}`,
+      `xl:${COLS_CLASS[config.xl]}`
     ].join(' ');
   }, [activeTemplate]);
 
@@ -292,10 +200,10 @@ export function FeaturedVideosSection({ videos, isAdmin = false, onEdit, onAdd, 
   GridOverlay.displayName = 'GridOverlay';
 
   return (
-    <section className="mt-12 mb-16" id="featured-videos">
-      <div className="max-w-7xl mx-auto">
-        <div className="py-4">
-          <div className="px-6">
+    <section>
+      <div>
+        <div>
+          <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
                 <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>

@@ -128,7 +128,7 @@ model AdminSettings {
 
 model Layout {
   id        Int      @id
-  template  Json
+  template  String   
   itemCount Int
   updatedAt DateTime @updatedAt
 }

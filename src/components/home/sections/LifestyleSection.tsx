@@ -4,117 +4,22 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
 import { getGridWithSeparators } from '@/components/ui/GridSeparators';
-import { Article } from '../types';
+import { Article } from '@/types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
+import ArticleManagement from '@/components/ArticleManagement';
 import { useLayoutPersistence } from '@/hooks/useLayoutPersistence';
+import { 
+  LAYOUT_TEMPLATES, 
+  COLS_CLASS, 
+  COL_SPAN_CLASS, 
+  type Breakpoint, 
+  type GridConfig, 
+  type ItemLayout, 
+  type LayoutTemplate 
+} from '../layouts/layoutTemplates';
 
-// Breakpoint types
-type Breakpoint = 'base' | 'md' | 'lg' | 'xl';
-
-// Grid configuration interfaces
-interface GridConfig {
-  base: number;
-  md: number;
-  lg: number;
-  xl: number;
-}
-
-interface ItemLayout {
-  colSpan: GridConfig;
-  priority: 'featured' | 'normal' | 'compact';
-}
-
-interface LayoutTemplate {
-  name: string;
-  description: string;
-  config: GridConfig;
-  itemCount: number;
-  itemLayouts?: ItemLayout[];
-}
-
-// Layout template definitions
-const LAYOUT_TEMPLATES: LayoutTemplate[] = [
-  {
-    name: 'Featured Hero',
-    description: 'One full-width featured story with smaller articles below',
-    config: { base: 1, md: 2, lg: 3, xl: 3 },
-    itemCount: 7,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 2, lg: 3, xl: 3 }, priority: 'featured' }, // Full width hero
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  },
-  {
-    name: 'Editorial Focus',
-    description: 'Single hero story with sidebar articles for editorial emphasis',
-    config: { base: 1, md: 2, lg: 3, xl: 3 },
-    itemCount: 7,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 2, lg: 2, xl: 2 }, priority: 'featured' }, // Large hero story
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  },
-  {
-    name: 'Balanced Grid',
-    description: 'Perfect for general news browsing with equal-sized articles',
-    config: { base: 1, md: 2, lg: 3, xl: 3 },
-    itemCount: 9
-  },
-  {
-    name: 'News Feed',
-    description: 'Shows more articles at once for quick scanning',
-    config: { base: 2, md: 3, lg: 4, xl: 6 },
-    itemCount: 12
-  },
-  {
-    name: 'Split Screen',
-    description: 'Two equal featured stories with compact news grid below',
-    config: { base: 1, md: 2, lg: 4, xl: 4 },
-    itemCount: 10,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 1, lg: 2, xl: 2 }, priority: 'featured' }, // Left featured
-      { colSpan: { base: 1, md: 1, lg: 2, xl: 2 }, priority: 'featured' }, // Right featured
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  }
-];
-
-// Utility mappings for Tailwind CSS classes
-const COLS_CLASS: Record<number, string> = {
-  1: 'grid-cols-1',
-  2: 'grid-cols-2',
-  3: 'grid-cols-3',
-  4: 'grid-cols-4',
-  5: 'grid-cols-5',
-  6: 'grid-cols-6'
-};
-
-const COL_SPAN_CLASS: Record<number, string> = {
-  1: 'col-span-1',
-  2: 'col-span-2',
-  3: 'col-span-3',
-  4: 'col-span-4',
-  5: 'col-span-5',
-  6: 'col-span-6'
-};
+// All layout templates and types are now imported from the centralized file
 
 
 
@@ -263,9 +168,9 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
 
 
   return (
-    <div className="mt-12">
-      <div id="lifestyle" className="py-4">
-        <div className="px-6">
+    <section>
+      <div>
+        <div id="lifestyle">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center">
               <div className="w-4 h-1 mr-3" style={{backgroundColor: '#000057'}}></div>
@@ -533,11 +438,12 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
+}
 
-  // GridItem component for rendering individual articles
-  function GridItem({
+// GridItem component for rendering individual articles
+function GridItem({
     article,
     onReadMore,
     onEdit,
@@ -580,27 +486,12 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
         onClick={() => onReadMore?.(article)}
       >
         {isAdmin && (onEdit || onDelete) && (
-          <div className="w-full flex justify-end gap-2 mb-3">
-            {onEdit && (
-              <button
-                type="button"
-                className="px-4 py-2 text-sm font-semibold bg-black text-white rounded-none shadow-none border-none hover:bg-gray-800 transition-colors"
-                onClick={(e) => { e.stopPropagation(); onEdit(article); }}
-                aria-label={`Edit ${article.title}`}
-              >
-                Edit
-              </button>
-            )}
-            {onDelete && (
-              <button
-                type="button"
-                className="px-4 py-2 text-sm font-semibold bg-red-600 text-white rounded-none shadow-none border-none hover:bg-red-700 transition-colors"
-                onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
-                aria-label={`Delete ${article.title}`}
-              >
-                Remove
-              </button>
-            )}
+          <div className="w-full flex justify-end mb-3">
+            <ArticleManagement
+              article={article}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           </div>
         )}
         <div className={cn(
@@ -669,4 +560,3 @@ export function LifestyleSection({ articles, onReadMore, onEdit, onDelete }: Lif
       </div>
     );
   }
-}

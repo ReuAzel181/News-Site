@@ -1,68 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { supabaseAdmin } from '@/lib/supabase'
 
 // GET /api/layout - Fetch current layout
 export async function GET() {
   try {
-    const layout = await prisma.layout.findUnique({
-      where: { id: 1 }
-    });
+    const { data, error } = await supabaseAdmin
+      .from('layouts')
+      .select('*')
+      .eq('id', 1)
+      .single()
 
-    return NextResponse.json({ layout });
-  } catch (error) {
-    console.error('Error fetching layout:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch layout' },
-      { status: 500 }
-    );
+    if (error) throw error
+    return NextResponse.json({ layout: data })
+  } catch (error: any) {
+    console.error('Error fetching layout:', error)
+    return NextResponse.json({ error: error.message || 'Failed to fetch layout' }, { status: 500 })
   }
 }
 
 // POST /api/layout - Save/update layout
 export async function POST(request: NextRequest) {
   try {
-    // Check if user is admin
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession({ req: request, ...authOptions })
     if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { template, itemCount } = await request.json();
+    const { template, itemCount } = await request.json()
 
-    if (!template || typeof itemCount !== 'number') {
-      return NextResponse.json(
-        { error: 'Invalid data: template and itemCount are required' },
-        { status: 400 }
-      );
+    if (!template || typeof template !== 'string' || typeof itemCount !== 'number') {
+      return NextResponse.json({ error: 'Invalid data' }, { status: 400 })
     }
 
-    // Upsert layout (create or update with id = 1)
-    const layout = await prisma.layout.upsert({
-      where: { id: 1 },
-      update: {
-        template,
-        itemCount,
-        updatedAt: new Date()
-      },
-      create: {
-        id: 1,
-        template,
-        itemCount,
-        updatedAt: new Date()
-      }
-    });
+    const { data, error } = await supabaseAdmin
+      .from('layouts')
+      .upsert({ id: 1, template, itemCount, updatedAt: new Date() })
 
-    return NextResponse.json({ layout });
-  } catch (error) {
-    console.error('Error saving layout:', error);
-    return NextResponse.json(
-      { error: 'Failed to save layout' },
-      { status: 500 }
-    );
+    if (error) throw error
+    return NextResponse.json({ layout: data })
+  } catch (error: any) {
+    console.error('Error saving layout:', error)
+    return NextResponse.json({ error: error.message || 'Failed to save layout' }, { status: 500 })
   }
 }

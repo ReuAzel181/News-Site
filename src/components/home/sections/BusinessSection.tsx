@@ -1,143 +1,23 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ProgressiveImage } from '@/components/ui/ProgressiveImage';
-import { getGridWithSeparators } from '@/components/ui/GridSeparators';
-import { Article } from '../types';
+import { Article } from '@/types';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/utils/cn';
 import { useLayoutPersistence } from '@/hooks/useLayoutPersistence';
+import { GridItem } from '@/components/ui/GridItem';
 
-// Breakpoint type
-type BP = 'base' | 'md' | 'lg' | 'xl';
-
-// Grid configuration for breakpoints
-interface GridConfig {
-  base: number;
-  md: number;
-  lg: number;
-  xl: number;
-}
-
-// Layout template definitions with flexible item configurations
-interface ItemLayout {
-  colSpan: { base: number; md: number; lg: number; xl: number };
-  priority: 'featured' | 'normal' | 'compact';
-}
-
-interface LayoutTemplate {
-  name: string;
-  description: string;
-  config: GridConfig;
-  itemCount: number;
-  itemLayouts?: ItemLayout[];
-}
-
-// Predefined layout templates with flexible configurations
-const LAYOUT_TEMPLATES: LayoutTemplate[] = [
-  {
-    name: 'Featured Hero',
-    description: 'One full-width featured story with smaller articles below',
-    config: { base: 1, md: 2, lg: 3, xl: 3 },
-    itemCount: 7,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 2, lg: 3, xl: 3 }, priority: 'featured' }, // Full width hero
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  },
-  {
-    name: 'Editorial Focus',
-    description: 'Single hero story with sidebar articles for editorial emphasis',
-    config: { base: 1, md: 2, lg: 3, xl: 3 },
-    itemCount: 7,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 2, lg: 2, xl: 2 }, priority: 'featured' }, // Large hero story
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'normal' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  },
-  {
-    name: 'Balanced Grid',
-    description: 'Perfect for general news browsing with equal-sized articles',
-    config: { base: 1, md: 2, lg: 3, xl: 3 },
-    itemCount: 9
-  },
-  {
-    name: 'News Feed',
-    description: 'Shows more articles at once for quick scanning',
-    config: { base: 2, md: 3, lg: 4, xl: 6 },
-    itemCount: 12
-  },
-  {
-    name: 'Split Screen',
-    description: 'Two equal featured stories with compact news grid below',
-    config: { base: 1, md: 2, lg: 4, xl: 4 },
-    itemCount: 10,
-    itemLayouts: [
-      { colSpan: { base: 1, md: 1, lg: 2, xl: 2 }, priority: 'featured' }, // Left featured
-      { colSpan: { base: 1, md: 1, lg: 2, xl: 2 }, priority: 'featured' }, // Right featured
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' },
-      { colSpan: { base: 1, md: 1, lg: 1, xl: 1 }, priority: 'compact' }
-    ]
-  }
-];
-
-// Utility: map numeric column count to Tailwind class names (keep strings static for safelisting)
-const COLS_CLASS: Record<number, string> = {
-  1: 'grid-cols-1',
-  2: 'grid-cols-2',
-  3: 'grid-cols-3',
-  4: 'grid-cols-4',
-  5: 'grid-cols-5',
-  6: 'grid-cols-6',
-};
-
-// Rows mapping (needed for dynamic grid-rows-* classes)
-const ROWS_CLASS: Record<number, string> = {
-  1: 'grid-rows-1',
-  2: 'grid-rows-2',
-  3: 'grid-rows-3',
-  4: 'grid-rows-4',
-  5: 'grid-rows-5',
-  6: 'grid-rows-6',
-};
-
-// Utility: map numeric span to Tailwind classes
-const COL_SPAN_CLASS: Record<number, string> = {
-  1: 'col-span-1',
-  2: 'col-span-2',
-  3: 'col-span-3',
-  4: 'col-span-4',
-  5: 'col-span-5',
-  6: 'col-span-6',
-};
-
-const ROW_SPAN_CLASS: Record<number, string> = {
-  1: 'row-span-1',
-  2: 'row-span-2',
-  3: 'row-span-3',
-  4: 'row-span-4',
-  5: 'row-span-5',
-  6: 'row-span-6',
-};
-
-// Removed unused constants for simplified interface
+import { 
+  LAYOUT_TEMPLATES, 
+  COL_SPAN_CLASS, 
+  getDefaultLayoutTemplate,
+  getLayoutTemplateByName,
+  type Breakpoint, 
+  type ItemLayout, 
+  type LayoutTemplate 
+} from '../layouts/layoutTemplates';
 
 interface BusinessSectionProps {
   articles: Article[];
@@ -149,685 +29,266 @@ interface BusinessSectionProps {
 export function BusinessSection({ articles, onReadMore, onEdit, onDelete }: BusinessSectionProps) {
   const { data: session } = useSession();
   const isAdmin = !!session?.user && session.user.role === 'ADMIN';
-  console.log('BusinessSection received articles:', articles.length);
-  console.log('Business articles before filtering:', articles.filter(a => a.category === 'Business' || a.category === 'Finance'));
   
   const businessNews = useMemo(() => (
     articles
       .filter(article => 
-        article.category === 'Business' || article.category === 'Finance'
+        article.category?.name === 'Business' || article.category?.name === 'Finance'
       )
       .filter((article, index, self) => 
         index === self.findIndex(a => a.id === article.id)
       )
       .slice(0, 12)
   ), [articles]);
-  
-  console.log('BusinessSection filtered articles:', businessNews.length, businessNews);
 
-  // Layout persistence hook
   const {
     selectedTemplate,
     itemCount,
     isLoaded,
     applyTemplate: applyPersistentTemplate
-  } = useLayoutPersistence('business', LAYOUT_TEMPLATES[0], LAYOUT_TEMPLATES);
+  } = useLayoutPersistence('business-section', getDefaultLayoutTemplate(), LAYOUT_TEMPLATES);
 
-  // Layout editor state (admin only)
+  // Layout editor state
   const [editingLayout, setEditingLayout] = useState(false);
-  const [originalTemplate, setOriginalTemplate] = useState<LayoutTemplate>(selectedTemplate);
-  const [gridCols, setGridCols] = useState<GridConfig>(selectedTemplate.config);
-  const [showGridLines, setShowGridLines] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showGridLines, setShowGridLines] = useState(false);
+  const [loadingLayout, setLoadingLayout] = useState(false);
+  const [bp, setBp] = useState<Breakpoint>('base');
 
-  // Update grid cols when selected template changes
-  useEffect(() => {
-    if (isLoaded) {
-      setGridCols(selectedTemplate.config);
-      setOriginalTemplate(selectedTemplate);
-    }
-  }, [selectedTemplate, isLoaded]);
+  const displayArticles = businessNews.slice(0, itemCount);
 
-  // Determine current breakpoint for preview
-  const [bp, setBp] = useState<BP>('base');
   useEffect(() => {
-    const onResize = () => {
-      const w = window.innerWidth;
-      if (w >= 1280) setBp('xl');
-      else if (w >= 1024) setBp('lg');
-      else if (w >= 768) setBp('md');
+    const updateBreakpoint = () => {
+      const width = window.innerWidth;
+      if (width >= 1280) setBp('xl');
+      else if (width >= 1024) setBp('lg');
+      else if (width >= 768) setBp('md');
       else setBp('base');
     };
-    onResize();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    
+    updateBreakpoint();
+    window.addEventListener('resize', updateBreakpoint);
+    return () => window.removeEventListener('resize', updateBreakpoint);
   }, []);
 
-  const applyTemplate = useCallback((template: LayoutTemplate) => {
-    applyPersistentTemplate(template);
-    // No need to set hasUnsavedChanges since the hook handles persistence automatically
-  }, [applyPersistentTemplate]);
+  const activeTemplate = useMemo(() => selectedTemplate, [selectedTemplate]);
 
-  const startEditing = useCallback(() => {
-    setOriginalTemplate(selectedTemplate);
-    setEditingLayout(true);
-    setHasUnsavedChanges(false);
-  }, [selectedTemplate]);
-
-  const cancelEditing = useCallback(() => {
-    setGridCols(originalTemplate.config);
-    setEditingLayout(false);
-    setHasUnsavedChanges(false);
-    setShowGridLines(false);
-  }, [originalTemplate]);
-
-  const saveChanges = useCallback(() => {
-    // Save the current template and item count to localStorage
-    const currentTemplate = LAYOUT_TEMPLATES.find(t => 
-      JSON.stringify(t.config) === JSON.stringify(gridCols)
-    ) || selectedTemplate;
-    
-    applyPersistentTemplate(currentTemplate);
-    setEditingLayout(false);
-    setHasUnsavedChanges(false);
-    setShowGridLines(false);
-    // Here you could save to localStorage or backend
-  }, [applyPersistentTemplate, gridCols, selectedTemplate, itemCount]);
-
-  // Grid visualization
-  const gridRef = useRef<HTMLDivElement>(null);
-  
-  // Calculate grid metrics for current breakpoint
   const gridMetrics = useMemo(() => {
-    const cols = gridCols[bp];
-    const totalItems = Math.min(businessNews.length, itemCount);
+    const cols = activeTemplate.config[bp];
+    const totalItems = displayArticles.length;
     const rows = Math.ceil(totalItems / cols);
     return { cols, rows, totalItems };
-  }, [gridCols, bp, businessNews.length, itemCount]);
+  }, [activeTemplate.config, bp, displayArticles.length]);
 
-  // Compute responsive grid classes based on editor state
-  const gridClass = useMemo(() => {
-    return cn(
-      'grid items-start auto-rows-min w-full gap-0',
-      COLS_CLASS[gridCols.base],
-      gridCols.md ? `md:${COLS_CLASS[gridCols.md]}` : undefined,
-      gridCols.lg ? `lg:${COLS_CLASS[gridCols.lg]}` : undefined,
-      gridCols.xl ? `xl:${COLS_CLASS[gridCols.xl]}` : undefined,
-    );
-  }, [gridCols, editingLayout, showGridLines]);
+  const startEditing = useCallback(() => {
+    setEditingLayout(true);
+    setShowGridLines(true);
+    setHasUnsavedChanges(false);
+  }, []);
 
-  // Grid overlay for visual representation
-  const GridOverlay = React.memo(() => {
-    if (!editingLayout || !showGridLines || !gridRef.current) return null;
-    
-    const { cols } = gridMetrics;
-    const overlayItems: React.ReactElement[] = [];
-    
-    // Create overlay items that match the actual grid items
-    businessNews.slice(0, itemCount).forEach((_, index) => {
-      const itemLayout = selectedTemplate.itemLayouts?.[index];
-      const colSpan = itemLayout?.colSpan[bp] || 1;
-      const priority = itemLayout?.priority || 'normal';
-      
-      overlayItems.push(
-        <div
-          key={index}
-          className={cn(
-            'border-2 border-dashed rounded-none min-h-[200px] flex items-center justify-center text-xs font-medium',
-            priority === 'featured' ? 'border-blue-400 bg-blue-50/40 text-blue-700' :
-            priority === 'compact' ? 'border-gray-400 bg-gray-50/40 text-gray-600' :
-            'border-green-400 bg-green-50/40 text-green-700',
-            COL_SPAN_CLASS[colSpan]
-          )}
-        >
-          <div className="text-center">
-              <div className="font-semibold">{priority === 'featured' ? '⭐ Featured' : priority === 'compact' ? '📰 Compact' : '📄 Standard'}</div>
-              <div className="text-xs opacity-75">Item {index + 1} • Span {colSpan}</div>
-            </div>
-          </div>
-      );
-    });
-    
-    return (
-      <div className={cn('absolute inset-0 pointer-events-none', gridClass)}>
-        {overlayItems}
-      </div>
-    );
-  });
-  GridOverlay.displayName = 'GridOverlay';
+  const cancelEditing = useCallback(() => {
+    setEditingLayout(false);
+    setShowGridLines(false);
+    setHasUnsavedChanges(false);
+  }, []);
+
+  const saveChanges = useCallback(async () => {
+    try {
+      setLoadingLayout(true);
+      // persist layout config (mock API call, you can connect to backend)
+      await new Promise(res => setTimeout(res, 1000));
+      setEditingLayout(false);
+      setShowGridLines(false);
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error('Error saving layout:', error);
+    } finally {
+      setLoadingLayout(false);
+    }
+  }, []);
+
+  const applyTemplate = useCallback((templateName: string) => {
+    const template = getLayoutTemplateByName(templateName);
+    if (template) {
+      applyPersistentTemplate(template);
+      setHasUnsavedChanges(true);
+    }
+  }, [applyPersistentTemplate]);
+
+  if (!isLoaded || businessNews.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="mt-12">
-      <div id="business-finance" className="py-4">
-        <div className="px-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <div
-                className="w-4 h-1 mr-3"
-                style={{ backgroundColor: '#000057' }}
-              ></div>
-              <h2 className="text-xl font-black uppercase tracking-wide text-left news-title">
-                Business & Finance
-              </h2>
-            </div>
-            {isAdmin && (
-              <button
-                type="button"
-                className="px-4 py-2 text-xs font-medium bg-green-600 text-white border-none shadow-none"
-                onClick={() => {
-                  console.log('Add new business article');
-                }}
-                style={{ borderRadius: '0px' }}
-              >
-                Add New
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="w-full h-0.5 mt-2 relative overflow-hidden">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t-2 border-solid border-gray-800 dark:border-gray-300"></div>
-          </div>
-        </div>
-      </div>
-
-      {isAdmin && (
-        <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mb-8">
-          <div className="px-6 py-4" style={{ backgroundColor: 'var(--card)' }}>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold">Layout Editor</span>
-              {!editingLayout ? (
+    <section>
+      <div>
+        <div id="business-finance">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <div className="w-3 h-1 mr-2" style={{backgroundColor: '#a855f7'}}></div>
+                <h2 className="text-lg font-black uppercase tracking-wide text-left news-title">Business & Finance</h2>
+              </div>
+              {isAdmin && (
                 <button
                   type="button"
-                  className="px-4 py-2 text-xs bg-blue-600 text-white rounded-none border-none shadow-none"
-                  onClick={startEditing}
+                  className="px-3 py-1.5 text-xs font-medium bg-red-600 text-white border-none shadow-none"
+                  onClick={() => console.log('Add new business article')}
+                  style={{ borderRadius: '0px' }}
                 >
-                  Customize Layout
+                  Add New
                 </button>
-              ) : (
-                <div className="flex gap-2">
+              )}
+            </div>
+          </div>
+          <div className="w-full h-0.5 mt-1.5 relative overflow-hidden">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t-2 border-solid border-gray-800 dark:border-gray-300"></div>
+            </div>
+          </div>
+        </div>
+
+        {isAdmin && (
+          <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mb-6">
+            <div className="px-4 py-3" style={{backgroundColor: 'var(--card)'}}>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Layout Editor</span>
+                {!editingLayout ? (
                   <button
                     type="button"
-                    className="px-4 py-2 text-xs bg-gray-500 text-white rounded-none border-none shadow-none"
-                    onClick={cancelEditing}
+                    className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-none border-none shadow-none"
+                    onClick={startEditing}
                   >
-                    Cancel
+                    Customize Layout
                   </button>
-                  <button
-                    type="button"
-                    className={cn(
-                      'px-4 py-2 text-xs rounded-none border-none shadow-none',
-                      hasUnsavedChanges
-                        ? 'bg-green-600 text-white'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    )}
-                    onClick={saveChanges}
-                    disabled={!hasUnsavedChanges}
-                  >
-                    Save Changes
-                  </button>
+                ) : (
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 text-xs bg-gray-500 text-white rounded-none border-none shadow-none"
+                      onClick={cancelEditing}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className={cn(
+                        'px-3 py-1.5 text-xs rounded-none border-none shadow-none',
+                        hasUnsavedChanges && !loadingLayout
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      )}
+                      onClick={saveChanges}
+                      disabled={!hasUnsavedChanges || loadingLayout}
+                    >
+                      {loadingLayout ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {editingLayout && (
+                <div className="mt-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {LAYOUT_TEMPLATES.map((template) => {
+                      const isActive = selectedTemplate.name === template.name;
+                      return (
+                        <div
+                          key={template.name}
+                          className={cn(
+                            'p-3 border cursor-pointer transition-all duration-200',
+                            isActive
+                              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                          )}
+                           onClick={() => applyTemplate(template.name)} 
+                        >
+                          {isActive && (
+                            <div className="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-1.5">✓ ACTIVE</div>
+                          )}
+                          <div className="font-medium text-sm text-gray-900 dark:text-white">{template.name}</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">{template.description}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
-
-            {editingLayout && (
-              <div className="mt-4 space-y-6">
-                {/* Layout Templates */}
-                <div>
-                  <div className="text-sm font-semibold mb-4 text-gray-800 dark:text-gray-300">
-                    Choose Your Layout Style
-                  </div>
-                  <div className="w-full -mx-3">
-                    <div className="flex flex-wrap gap-3 justify-stretch px-3">
-                      {LAYOUT_TEMPLATES.map((template) => {
-                        const isActive = selectedTemplate.name === template.name;
-                        const hasFlexibleLayout = !!template.itemLayouts;
-                        return (
-                          <button
-                            key={template.name}
-                            type="button"
-                            className={cn(
-                              'p-3 text-left rounded-none border-2 shadow-none transition-all duration-200 relative flex-1 min-w-0',
-                              isActive
-                                ? 'border-blue-500 bg-blue-50 text-blue-900'
-                                : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-                            )}
-                            onClick={() => {
-                              applyPersistentTemplate(template);
-                              applyTemplate(template);
-                            }}
-                          >
-                            {isActive && (
-                              <div
-                                className="absolute top-2 right-2 w-3 h-3 bg-blue-500 flex items-center justify-center"
-                                style={{ borderRadius: '0px' }}
-                              >
-                                <div
-                                  className="w-1.5 h-1.5 bg-white"
-                                  style={{ borderRadius: '0px' }}
-                                ></div>
-                              </div>
-                            )}
-                            <div className="text-sm font-semibold mb-1 mt-2">
-                              {template.name}
-                            </div>
-                            <div className="text-xs text-gray-600 mb-2 leading-tight line-clamp-2">
-                              {template.description}
-                            </div>
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-gray-500">
-                                {template.itemCount} articles
-                              </span>
-                              <div className="flex gap-1">
-                                {hasFlexibleLayout ? (
-                                  <div className="flex items-center gap-1">
-                                    <div
-                                      className="w-3 h-2 bg-blue-400"
-                                      style={{ borderRadius: '0px' }}
-                                    ></div>
-                                    <div
-                                      className="w-2 h-2 bg-green-400"
-                                      style={{ borderRadius: '0px' }}
-                                    ></div>
-                                    <div
-                                      className="w-1.5 h-2 bg-gray-400"
-                                      style={{ borderRadius: '0px' }}
-                                    ></div>
-                                  </div>
-                                ) : (
-                                  Object.values(template.config).map(
-                                    (cols, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="w-2 h-2 bg-gray-300"
-                                        style={{ borderRadius: '0px' }}
-                                      ></div>
-                                    )
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Layout Preview */}
-                <div className="bg-white p-4 rounded-none border border-gray-200">
-                  <div className="text-sm font-semibold mb-3 text-gray-800 dark:text-gray-300">
-                    Layout Preview
-                  </div>
-                  <div
-                    className={cn(
-                      'grid gap-1 mb-3',
-                      COLS_CLASS[selectedTemplate.config[bp]]
-                    )}
-                  >
-                    {selectedTemplate.itemLayouts ? (
-                      selectedTemplate.itemLayouts
-                        .slice(
-                          0,
-                          Math.min(selectedTemplate.itemCount, 9)
-                        )
-                        .map((layout, index) => {
-                          const colSpan = layout.colSpan[bp];
-                          return (
-                            <div
-                              key={index}
-                              className={cn(
-                                'h-8 flex items-center justify-center text-xs font-medium',
-                                layout.priority === 'featured'
-                                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                                  : layout.priority === 'compact'
-                                  ? 'bg-gray-100 text-gray-600 border border-gray-200'
-                                  : 'bg-green-100 text-green-700 border border-green-200',
-                                COL_SPAN_CLASS[colSpan]
-                              )}
-                            >
-                              {layout.priority === 'featured'
-                                ? '⭐'
-                                : layout.priority === 'compact'
-                                ? '📰'
-                                : '📄'}
-                            </div>
-                          );
-                        })
-                    ) : (
-                      Array.from({
-                        length: Math.min(selectedTemplate.itemCount, 12),
-                      }).map((_, index) => (
-                        <div
-                          key={index}
-                          className="h-8 flex items-center justify-center text-xs font-medium bg-green-100 text-green-700 border border-green-200"
-                        >
-                          📄
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 text-center">
-                    {selectedTemplate.itemLayouts ? (
-                      '⭐ Featured • 📄 Standard • 📰 Compact'
-                    ) : (
-                      `📄 ${selectedTemplate.itemCount} uniform articles in ${selectedTemplate.config[bp]}-column grid`
-                    )}
-                  </div>
-                </div>
-
-                {/* Preview Controls */}
-                <div className="border-t border-gray-200 pt-4">
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-3 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={showGridLines}
-                        onChange={(e) => setShowGridLines(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded-none focus:ring-blue-500"
-                      />
-                      <span className="text-gray-700">Show layout guide</span>
-                    </label>
-                    <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-none">
-                      {gridMetrics.cols} × {gridMetrics.rows} grid •{' '}
-                      {gridMetrics.totalItems} articles
-                    </div>
-                  </div>
-                  {showGridLines && (
-                    <div className="mt-2 text-xs text-gray-500">
-                      💡 The guide shows where each article will appear in your
-                      layout
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      <div className="relative w-full">
-        {/* Actual grid with separators */}
-        <div className="w-full relative flex flex-col">
-          {(() => {
-            const articles = businessNews.slice(0, itemCount);
-            const rows: Array<Array<{ article: Article; itemLayout?: ItemLayout; index: number }>> = [];
-            let currentRow: Array<{ article: Article; itemLayout?: ItemLayout; index: number }> = [];
-            let currentRowSpan = 0;
-            
-            articles.forEach((article, index) => {
-              const itemLayout = selectedTemplate.itemLayouts?.[index];
-              const colSpan = itemLayout?.colSpan?.[bp] || 1;
-              
-              if (currentRowSpan + colSpan > gridMetrics.cols) {
-                if (currentRow.length > 0) {
-                  rows.push([...currentRow]);
-                  currentRow = [];
-                  currentRowSpan = 0;
-                }
-              }
-              
-              currentRow.push({ article, itemLayout, index });
-              currentRowSpan += colSpan;
-              
-              if (currentRowSpan >= gridMetrics.cols) {
-                rows.push([...currentRow]);
-                currentRow = [];
-                currentRowSpan = 0;
-              }
-            });
-            
-            if (currentRow.length > 0) {
-              rows.push(currentRow);
-            }
-            
-            return rows.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex w-full relative">
-                {row.map(({ article, itemLayout, index }, colIndex) => {
-                  const colSpan = itemLayout?.colSpan?.[bp] || 1;
-                  const widthPercentage = (colSpan / gridMetrics.cols) * 100;
-                  
-                  return (
-                    <div
-                      key={article.id}
-                      className="relative"
-                      style={{ width: `${widthPercentage}%` }}
-                    >
-                      <GridItem
-                        article={article}
-                        onReadMore={onReadMore}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        isAdmin={isAdmin}
-                        editingLayout={editingLayout}
-                        itemLayout={itemLayout}
-                        currentBreakpoint={bp}
-                        templateName={selectedTemplate.name}
-                      />
-                      {colIndex < row.length - 1 && (
-                        <div className="absolute top-0 right-0 w-px h-full bg-gray-200 dark:bg-gray-700" />
-                      )}
-                    </div>
-                  );
-                })}
-                {rowIndex < rows.length - 1 && (
-                  <div className="absolute bottom-0 left-4 right-4 h-px bg-gray-200 dark:bg-gray-700" />
-                )}
-              </div>
-            ));
-          })()}
-        </div>
-
-        {/* Grid overlay lines */}
-        {showGridLines && (
-          <div className="absolute inset-0 pointer-events-none z-50">
-            {/* Vertical lines */}
-            {Array.from({ length: gridMetrics.cols - 1 }).map((_, i) => (
-              <div
-                key={`v-${i}`}
-                className="absolute top-0 bottom-0 w-px bg-gray-400 dark:bg-gray-500"
-                style={{ left: `${((i + 1) / gridMetrics.cols) * 100}%` }}
-              />
-            ))}
-            {/* Horizontal lines */}
-            {Array.from({ length: gridMetrics.rows - 1 }).map((_, i) => (
-              <div
-                key={`h-${i}`}
-                className="absolute left-0 right-0 h-px bg-gray-400 dark:bg-gray-500"
-                style={{ top: `${((i + 1) / gridMetrics.rows) * 100}%` }}
-              />
-            ))}
           </div>
         )}
-      </div>
-    </div>
-  );
 
-}
+        <div className="pt-4 px-4 pb-4">
+          <div className="relative">
+            <div className="relative w-full flex flex-col">
+              {(() => {
+                const rows: Array<Array<{ article: Article; itemLayout?: ItemLayout; index: number }>> = [];
+                let currentRow: Array<{ article: Article; itemLayout?: ItemLayout; index: number }> = [];
+                let currentRowSpan = 0;
+                
+                displayArticles.forEach((article, index) => {
+                  const itemLayout = activeTemplate.itemLayouts?.[index];
+                  const colSpan = itemLayout?.colSpan?.[bp] || 1;
+                  
+                  if (currentRowSpan + colSpan > gridMetrics.cols) {
+                    if (currentRow.length > 0) {
+                      rows.push([...currentRow]);
+                      currentRow = [];
+                      currentRowSpan = 0;
+                    }
+                  }
+                  
+                  currentRow.push({ article, itemLayout, index });
+                  currentRowSpan += colSpan;
+                  
+                  if (currentRowSpan >= gridMetrics.cols) {
+                    rows.push([...currentRow]);
+                    currentRow = [];
+                    currentRowSpan = 0;
+                  }
+                });
+                
+                if (currentRow.length > 0) rows.push(currentRow);
+                
+                return rows.map((row, rowIndex) => (
+                  <div key={rowIndex} className="flex w-full relative">
+                    {row.map(({ article, itemLayout, index }, colIndex) => {
+                      const colSpan = itemLayout?.colSpan?.[bp] || 1;
+                      const widthPercentage = (colSpan / gridMetrics.cols) * 100;
+                      return (
+                        <div
+                          key={article.id}
+                          className="relative"
+                          style={{ width: `${widthPercentage}%` }}
+                        >
+                         <GridItem
+                            article={article}
+                            onReadMore={onReadMore}
+                            onEdit={onEdit}
+                            onDelete={onDelete}
+                            isAdmin={isAdmin}
+                            editingLayout={editingLayout}
+                            itemLayout={itemLayout}
+                            currentBreakpoint={bp}
+                            index={index}
+                          />
 
-interface GridItemProps {
-  article: Article;
-  onReadMore?: (article: Article) => void;
-  onEdit?: (article: Article) => void;
-  onDelete?: (articleId: string) => void;
-  isAdmin: boolean;
-  editingLayout: boolean;
-  itemLayout?: ItemLayout;
-  currentBreakpoint: BP;
-  templateName: string; // Add template name to differentiate styling
-}
-
-const GridItem = React.memo(function GridItem({ article, onReadMore, onEdit, onDelete, isAdmin, editingLayout, itemLayout, currentBreakpoint, templateName }: GridItemProps) {
-
-  const handleReadMore = useCallback(() => {
-    onReadMore?.(article);
-  }, [article, onReadMore]);
-
-  const handleEdit = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    onEdit?.(article);
-  }, [article, onEdit]);
-
-  // Calculate column span classes based on item layout
-  const colSpanClasses = useMemo(() => {
-    if (!itemLayout) return '';
-    
-    const spans = itemLayout.colSpan;
-    return cn(
-      COL_SPAN_CLASS[spans.base],
-      spans.md ? `md:${COL_SPAN_CLASS[spans.md]}` : undefined,
-      spans.lg ? `lg:${COL_SPAN_CLASS[spans.lg]}` : undefined,
-      spans.xl ? `xl:${COL_SPAN_CLASS[spans.xl]}` : undefined
-    );
-  }, [itemLayout]);
-
-  // Determine styling based on priority and template
-  const priorityStyles = useMemo(() => {
-    if (!itemLayout) return { aspectRatio: '4/3', titleSize: 'text-sm', excerptLines: 'line-clamp-2' };
-    
-    // Template-specific styling differences
-    const isEditorial = templateName === 'Editorial Focus';
-    const isSplitScreen = templateName === 'Split Screen';
-    
-    switch (itemLayout.priority) {
-      case 'featured':
-        return {
-          aspectRatio: isEditorial ? '5/3' : isSplitScreen ? '3/2' : '16/9', // Split Screen uses 3:2 for better balance
-          titleSize: isEditorial ? 'text-lg md:text-xl font-bold' : isSplitScreen ? 'text-base md:text-lg font-semibold' : 'text-lg md:text-xl font-semibold',
-          excerptLines: isEditorial ? 'line-clamp-3' : isSplitScreen ? 'line-clamp-2' : 'line-clamp-3'
-        };
-      case 'compact':
-        return {
-          aspectRatio: isEditorial ? '4/3' : isSplitScreen ? '3/2' : '4/3', // Split Screen uses 3:2 for compact items
-          titleSize: isEditorial ? 'text-xs font-medium' : isSplitScreen ? 'text-xs font-medium' : 'text-xs font-normal',
-          excerptLines: 'line-clamp-1'
-        };
-      default:
-        return {
-          aspectRatio: isEditorial ? '4/3' : '3/2', // Consistent aspect ratios
-          titleSize: isEditorial ? 'text-sm font-semibold' : 'text-sm font-medium',
-          excerptLines: isEditorial ? 'line-clamp-2' : 'line-clamp-2'
-        };
-    }
-  }, [itemLayout, templateName]);
-
-  return (
-    <div 
-      className={cn(
-        'transition-none',
-        colSpanClasses,
-        editingLayout && 'ring-1 ring-gray-200 ring-inset'
-      )} 
-      onClick={handleReadMore}
-    >
-      {isAdmin && (onEdit || onDelete) && (
-        <div className="w-full flex justify-end gap-2 mb-2">
-          {onEdit && (
-            <button
-              type="button"
-              className="px-4 py-2 text-sm font-semibold bg-black text-white rounded-none shadow-none border-none transition-none"
-              onClick={handleEdit}
-              aria-label={`Edit ${article.title}`}
-            >
-              Edit
-            </button>
-          )}
-          {onDelete && (
-            <button
-              type="button"
-              className="px-4 py-2 text-sm font-semibold bg-red-600 text-white rounded-none shadow-none border-none transition-none"
-              onClick={(e) => { e.stopPropagation(); onDelete(article.id); }}
-              aria-label={`Remove ${article.title}`}
-            >
-              Remove
-            </button>
-          )}
-        </div>
-      )}
-      <div className={cn(
-        'flex flex-col rounded-none shadow-none ring-0 outline-none cursor-pointer group overflow-hidden',
-        // Optimized template-specific padding - reduced for better space utilization
-        templateName === 'Editorial Focus' ? (
-          itemLayout?.priority === 'featured' ? 'p-4' : itemLayout?.priority === 'compact' ? 'p-2' : 'p-3'
-        ) : templateName === 'Split Screen' ? (
-          itemLayout?.priority === 'featured' ? 'p-3' : itemLayout?.priority === 'compact' ? 'p-1.5' : 'p-2'
-        ) : (
-          itemLayout?.priority === 'featured' ? 'p-3' : itemLayout?.priority === 'compact' ? 'p-1.5' : 'p-2'
-        ),
-        ""
-      )}>
-        {/* Removed all borders and dividers for flat design */}
-        <div className={cn(
-          'relative w-full rounded-none overflow-hidden',
-          itemLayout?.priority === 'featured' ? 'mb-3' : itemLayout?.priority === 'compact' ? 'mb-1.5' : 'mb-2'
-        )} style={{aspectRatio: priorityStyles.aspectRatio}}>
-          <ProgressiveImage
-            src={article.imageUrl}
-            alt={article.title}
-            width={itemLayout?.priority === 'featured' ? 800 : 400}
-            height={itemLayout?.priority === 'featured' ? 450 : 300}
-            className="w-full h-full rounded-none transition-none"
-            quality={95}
-            fill
-            sizes={itemLayout?.priority === 'featured' ? '(max-width: 768px) 100vw, 80vw' : '(max-width: 768px) 100vw, 33vw'}
-          />
-          {/* Category overlay */}
-          <div className="absolute top-2 left-2 z-10">
-            <span 
-              className="px-2 py-1 text-xs font-bold text-white uppercase tracking-wider"
-              style={{
-                background: 'linear-gradient(90deg, #22c55e, #16a34a)'
-              }}
-            >
-              {article.category}
-            </span>
-          </div>
-        </div>
-        <div className={cn(
-          'flex flex-col',
-          templateName === 'Editorial Focus' ? (
-            itemLayout?.priority === 'featured' ? 'space-y-2' : 'space-y-1.5'
-          ) : (
-            itemLayout?.priority === 'featured' ? 'space-y-1.5' : 'space-y-1'
-          )
-        )}>
-          <h3 className={cn(
-            'font-semibold news-title',
-            priorityStyles.titleSize,
-            itemLayout?.priority === 'featured' ? 'line-clamp-3' : 'line-clamp-2'
-          )}>
-            {article.title}
-          </h3>
-          {itemLayout?.priority !== 'compact' && (
-            <p className={cn(
-              'news-content text-gray-500 font-sans',
-              priorityStyles.excerptLines,
-              itemLayout?.priority === 'featured' ? 'text-sm' : 'text-xs'
-            )}>
-              {article.excerpt}
-            </p>
-          )}
-          {/* Tags */}
-          {article.tags && article.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {article.tags.slice(0, 3).map((tag) => (
-                <span 
-                  key={tag}
-                  className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                >
-                  {tag}
-                </span>
-              ))}
+                          {colIndex < row.length - 1 && (
+                            <div className="absolute top-0 right-0 w-px h-full bg-gray-200 dark:bg-gray-700" />
+                          )}
+                        </div>
+                      );
+                    })}
+                    {rowIndex < rows.length - 1 && (
+                      <div className="absolute bottom-0 left-4 right-4 h-px bg-gray-200 dark:bg-gray-700" />
+                    )}
+                  </div>
+                ));
+              })()}
             </div>
-          )}
-          <div className={cn(
-            'news-meta',
-            itemLayout?.priority === 'featured' ? 'text-sm mt-2' : 'text-xs mt-1'
-          )}>
-            {formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true })}
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
-});
+}
